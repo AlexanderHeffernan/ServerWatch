@@ -16,7 +16,7 @@
 			font-family: 'Roboto', sans-serif;
 			margin: 20px;
 			padding: 0;
-			background-color: #f5f5f5;
+			background-color: #F1F3F4;
 		}
 		.popup {
 			position: fixed;
@@ -94,18 +94,6 @@
 			background: #0F5AF3;
 			cursor: pointer;
 		}
-		.container {
-			max-width: 600px;
-			margin: auto;
-			padding: 20px;
-			background: white;
-			box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-			border-radius: 8px;
-		}
-		#metrics {
-			margin-top: 20px;
-			font-size: 18px;
-		}
 		h1 {
 			text-align: center;
 		}
@@ -113,7 +101,36 @@
 			font-size: 18px;
 		}
 		.hidden {
-			display: none;
+			display: none;	
+		}
+		.cards-container {
+			display: flex;
+			margin-top: 20px;
+			gap: 20px;
+		}
+		.card {
+			background: white;
+			padding: 20px;
+			border-radius: 8px;
+			box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+			width: 200px;
+		}
+
+		.card .icon-container {
+			display: flex;
+			justify-content: center;
+			margin-bottom: 10px;
+			background-color: #1A73E8;
+			color: white;
+			padding: 10px;
+			border-radius: 50%;
+			width: 50px;
+		}
+
+		.card .icon-container svg {
+			width: 30px;
+			height: 30px;
+			fill: white;
 		}
 	</style>
 </head>
@@ -138,20 +155,29 @@
 		</div>
 	</div>
 	<div class="container">
-		<h1>ServerWatch</h1>
-		<label for="ipAddress">Enter IP Address:</label>
-		<input type="text" id="ipAddress" placeholder="e.g., 192.168.1.104"><br />
-
-		<label for="password">Password:</label>
-		<input type="password" id="password" placeholder="Enter password">
-
-		<button onclick="fetchMetrics()">Fetch Metrics</button>
-		<button onclick="refreshMetrics()" class="hidden" id="refreshBtn">Refresh</button>
-
-		<div id="metrics" class="hidden">
-			<p><strong>CPU Usage:</strong> <span id="cpuUsage">Loading...</span></p>
-			<p><strong>Memory Usage:</strong> <span id="memoryUsage">Loading...</span></p>
-			<p><strong>Disk Usage:</strong> <span id="diskUsage">Loading...</span></p>
+		<button onclick="refreshMetrics()" id="refreshBtn">Refresh</button>
+		<div class="cards-container">
+			<div class="card">
+				<div class="icon-container">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M176 24c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 40c-35.3 0-64 28.7-64 64l-40 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l40 0 0 56-40 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l40 0 0 56-40 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l40 0c0 35.3 28.7 64 64 64l0 40c0 13.3 10.7 24 24 24s24-10.7 24-24l0-40 56 0 0 40c0 13.3 10.7 24 24 24s24-10.7 24-24l0-40 56 0 0 40c0 13.3 10.7 24 24 24s24-10.7 24-24l0-40c35.3 0 64-28.7 64-64l40 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-40 0 0-56 40 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-40 0 0-56 40 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-40 0c0-35.3-28.7-64-64-64l0-40c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 40-56 0 0-40c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 40-56 0 0-40zM160 128l192 0c17.7 0 32 14.3 32 32l0 192c0 17.7-14.3 32-32 32l-192 0c-17.7 0-32-14.3-32-32l0-192c0-17.7 14.3-32 32-32zm192 32l-192 0 0 192 192 0 0-192z"/></svg>
+				</div>
+				<h2>CPU</h2>
+				<p>Usage: <span id="cpuUsage">Loading...</span></p>
+			</div>
+			<div class="card">
+				<div class="icon-container">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M64 64C28.7 64 0 92.7 0 128l0 7.4c0 6.8 4.4 12.6 10.1 16.3C23.3 160.3 32 175.1 32 192s-8.7 31.7-21.9 40.3C4.4 236 0 241.8 0 248.6L0 320l576 0 0-71.4c0-6.8-4.4-12.6-10.1-16.3C552.7 223.7 544 208.9 544 192s8.7-31.7 21.9-40.3c5.7-3.7 10.1-9.5 10.1-16.3l0-7.4c0-35.3-28.7-64-64-64L64 64zM576 352L0 352l0 64c0 17.7 14.3 32 32 32l48 0 0-32c0-8.8 7.2-16 16-16s16 7.2 16 16l0 32 96 0 0-32c0-8.8 7.2-16 16-16s16 7.2 16 16l0 32 96 0 0-32c0-8.8 7.2-16 16-16s16 7.2 16 16l0 32 96 0 0-32c0-8.8 7.2-16 16-16s16 7.2 16 16l0 32 48 0c17.7 0 32-14.3 32-32l0-64zM192 160l0 64c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32s32 14.3 32 32zm128 0l0 64c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32s32 14.3 32 32zm128 0l0 64c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32s32 14.3 32 32z"/></svg>
+				</div>
+				<h2>Memory</h2>
+				<p>Usage: <span id="memoryUsage">Loading...</span></p>
+			</div>
+			<div class="card">
+				<div class="icon-container">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M0 96C0 60.7 28.7 32 64 32l384 0c35.3 0 64 28.7 64 64l0 184.4c-17-15.2-39.4-24.4-64-24.4L64 256c-24.6 0-47 9.2-64 24.4L0 96zM64 288l384 0c35.3 0 64 28.7 64 64l0 64c0 35.3-28.7 64-64 64L64 480c-35.3 0-64-28.7-64-64l0-64c0-35.3 28.7-64 64-64zM320 416a32 32 0 1 0 0-64 32 32 0 1 0 0 64zm128-32a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/></svg>
+				</div>
+				<h2>Disk</h2>
+				<p>Usage: <span id="diskUsage">Loading...</span></p>
+			</div>
 		</div>
 	</div>
 
@@ -188,7 +214,6 @@
 				localStorage.removeItem("password");
 			}
 
-			document.getElementById("refreshBtn").classList.remove("hidden");
 			document.getElementById("connect-popup").classList.add("hidden");
 		}
 
@@ -208,14 +233,27 @@
 				}
 
 				const data = await response.json();
-				document.getElementById("cpuUsage").textContent = data.cpu_usage.join(", ") + "%";
-				document.getElementById("memoryUsage").textContent = data.memory_usage + "bytes";
-				document.getElementById("diskUsage").textContent = data.disk_usage.join(", ") + "bytes";
-
-				document.getElementById("metrics").classList.remove("hidden");
+				document.getElementById("cpuUsage").textContent = formatCpuUsage(data.cpu_usage);
+				document.getElementById("memoryUsage").textContent = formatMemoryUsage(data.memory_usage);
+				document.getElementById("diskUsage").textContent = formatDiskUsage(data.disk_usage);
 			} catch (error) {
 				console.error("Error fetching metrics: ", error);
 			}
+		}
+
+		function formatCpuUsage(cpus) {
+			const totalUsage = cpus.reduce((acc, cpu) => acc + cpu);
+			return (totalUsage / cpus.length).toFixed(0) + "%";
+		}
+
+		function formatMemoryUsage(bytes) {
+			return (bytes / 1024 / 1024 / 1024).toFixed(2) + "GB";
+		}
+
+		function formatDiskUsage(disk_usage) {
+			// Disk usage is an array of the usage of each disk
+			// Format disk usage from bytes used to GB
+			return disk_usage.map((disk, index) => (disk / 1024 / 1024 / 1024).toFixed(2) + "GB").join(", ");
 		}
 	</script>
 </body>
