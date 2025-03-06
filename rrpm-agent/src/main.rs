@@ -1,0 +1,54 @@
+use axum::{routing::get, Router, Json};
+use serde::Serialize;
+use sysinfo::{Disks, System};
+use std::net::SocketAddr;
+
+#[derive(Serialize)]
+struct Metrics {
+    cpu_usage: Vec<f32>, // CPU usage percentage
+    memory_usage: u64, // Memory usage in bytes (raw data)
+    disk_usage: Vec<u64>, // Disk usage in bytes (raw data)
+}
+
+async fn get_metrics() -> Json<Metrics> {
+    let mut sys = System::new_all();
+    sys.refresh_all();
+
+    let cpu_usage = get_cpu_usage(&sys); // CPU usage in percentage
+
+    let memory_usage = sys.used_memory(); // Memory usage in bytes
+
+    let disk_usage = get_disk_usage(); // Disk usage in bytes
+                                                         
+    Json(Metrics {
+        cpu_usage,
+        memory_usage,
+        disk_usage,
+    })
+}
+
+fn get_cpu_usage(sys: &System) -> Vec<f32> {
+    sys.cpus()
+        .iter()
+        .map(|cpu| cpu.cpu_usage())
+        .collect() // Collect CPU usage values into a vector
+}
+
+fn get_disk_usage() -> Vec<u64> {
+    Disks::new_with_refreshed_list()
+        .iter()
+        .map(|disk| disk.total_space() - disk.available_space())
+        .collect()
+}
+
+#[tokio::main]
+async fn main() {
+    let app = Router::new().route("/metrics", get(get_metrics));
+
+    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
+    println!("Agent running at http://{}", addr);
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
+}
