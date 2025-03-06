@@ -1,13 +1,9 @@
-use axum::{
-    routing::get,
-    Router,
-    Json,
-    http::Method,
-};
+use axum::{routing::get,Router,Json,http::Method, extract::Query, http::StatusCode};
 use tower_http::cors::{CorsLayer, Any};
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use sysinfo::{Disks, System};
 use std::net::SocketAddr;
+use std::env;
 
 #[derive(Serialize)]
 struct Metrics {
@@ -16,7 +12,18 @@ struct Metrics {
     disk_usage: Vec<u64>, // Disk usage in bytes (raw data)
 }
 
-async fn get_metrics() -> Json<Metrics> {
+#[derive(Deserialize)]
+struct AuthQuery {
+    password: String,
+}
+
+async fn get_metrics(query: Query<AuthQuery>) -> Result<Json<Metrics>, StatusCode> {
+    let expected_password = env::var("PASSWORD").unwrap_or_else(|_| "Password123".to_string());
+
+    if query.password != expected_password {
+        return Err(StatusCode::UNAUTHORIZED);
+    }
+
     let mut sys = System::new_all();
     sys.refresh_all();
 
@@ -26,11 +33,11 @@ async fn get_metrics() -> Json<Metrics> {
 
     let disk_usage = get_disk_usage(); // Disk usage in bytes
                                                          
-    Json(Metrics {
+    Ok(Json(Metrics {
         cpu_usage,
         memory_usage,
         disk_usage,
-    })
+    }))
 }
 
 fn get_cpu_usage(sys: &System) -> Vec<f32> {
