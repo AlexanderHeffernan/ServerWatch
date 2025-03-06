@@ -19,39 +19,76 @@
 			box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
 			border-radius: 8px;
 		}
+		input, button {
+			padding: 10px;
+			margin: 5px;
+			font-size: 16px;
+		}
+		#metrics {
+			margin-top: 20px;
+			font-size: 18px;
+		}
 		h1 {
 			text-align: center;
 		}
 		p {
 			font-size: 18px;
 		}
+		.hidden {
+			display: none;
+		}
 	</style>
 </head>
 <body>
 	<div class="container">
 		<h1>Raspberry Pi System Metrics</h1>
-		<p><strong>CPU Usage:</strong> <span id="cpuUsage">Loading...</span></p>
-		<p><strong>Memory Usage:</strong> <span id="memoryUsage">Loading...</span></p>
-		<p><strong>Disk Usage:</strong> <span id="diskUsage">Loading...</span></p>
+		<label for="ipAddress">Enter IP Address:</label>
+		<input type="text" id="ipAddress" placeholder="e.g., 192.168.1.104">
+		<button onclick="fetchMetrics()">Fetch Metrics</button>
+		<button onclick="refreshMetrics()" class="hidden" id="refreshBtn">Refresh</button>
+
+		<div id="metrics" class="hidden">
+			<p><strong>CPU Usage:</strong> <span id="cpuUsage">Loading...</span></p>
+			<p><strong>Memory Usage:</strong> <span id="memoryUsage">Loading...</span></p>
+			<p><strong>Disk Usage:</strong> <span id="diskUsage">Loading...</span></p>
+		</div>
 	</div>
 
 	<script>
+		let currentIP = "";
+		
 		async function fetchMetrics() {
+			const ip = document.getElementById("ipAddress").value.trim();
+			if (!ip) {
+				alert("Please enter a valid IP address.");
+				return;
+			}
+
+			currentIP = ip; // Save for refresh button
+			await getMetrics(ip);
+			document.getElementById("refreshBtn").classList.remove("hidden");
+		}
+
+		async function refreshMetrics() {
+			if (currentIP) {
+				await getMetrics(currentIP);
+			}
+		}
+
+		async function getMetrics(ip) {
 			try {
-				const response = await fetch("http://192.168.1.104:8080/metrics");
-				console.log("Response: ", response);
+				const response = await fetch(`http://${ip}:8080/metrics`);
 				const data = await response.json();
-				console.log("Data: ", data);
 
 				document.getElementById("cpuUsage").textContent = data.cpu_usage.join(", ") + "%";
 				document.getElementById("memoryUsage").textContent = data.memory_usage + "bytes";
 				document.getElementById("diskUsage").textContent = data.disk_usage.join(", ") + "bytes";
+
+				document.getElementById("metrics").classList.remove("hidden");
 			} catch (error) {
 				console.error("Error fetching metrics: ", error);
 			}
 		}
-		
-		fetchMetrics();
 	</script>
 </body>
 </html>
