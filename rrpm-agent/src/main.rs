@@ -1,4 +1,10 @@
-use axum::{routing::get, Router, Json};
+use axum::{
+    routing::get,
+    Router,
+    Json,
+    http::Method,
+};
+use tower_http::cors::{CorsLayer, Any};
 use serde::Serialize;
 use sysinfo::{Disks, System};
 use std::net::SocketAddr;
@@ -43,7 +49,13 @@ fn get_disk_usage() -> Vec<u64> {
 
 #[tokio::main]
 async fn main() {
-    let app = Router::new().route("/metrics", get(get_metrics));
+    let app = Router::new()
+        .route("/metrics", get(get_metrics))
+        .layer(
+            CorsLayer::new()
+                .allow_methods([Method::GET]) // Allow GET requests
+                .allow_origin(Any), // Allow requests from any origin
+        );
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     println!("Agent running at http://{}", addr);
