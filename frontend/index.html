@@ -172,6 +172,7 @@
 				</div>
 				<h2>Memory</h2>
 				<p>Usage: <span id="memoryUsage">Loading...</span></p>
+				<p>Total: <span id="memoryTotal">Loading..</span></p>
 			</div>
 			<div class="card">
 				<div class="icon-container">
@@ -238,6 +239,7 @@
 				document.getElementById("totalCpuUsage").textContent = formatTotalCpuUsage(data.total_cpu_usage);
 				document.getElementById("individualCpuUsage").innerHTML = formatIndividualCpuUsage(data.individual_cpu_usage);
 				document.getElementById("memoryUsage").textContent = formatMemoryUsage(data.memory_usage);
+				document.getElementById("memoryTotal").textContent = formatMemoryUsage(data.memory_total);
 				document.getElementById("diskUsage").textContent = formatDiskUsage(data.disk_usage);
 			} catch (error) {
 				console.error("Error fetching metrics: ", error);

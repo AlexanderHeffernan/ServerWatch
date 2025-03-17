@@ -10,6 +10,7 @@ struct Metrics {
     total_cpu_usage: f32, // CPU usage percentage averages across all cores
     individual_cpu_usage: Vec<f32>, // CPU usage percentage for each core
     memory_usage: u64, // Memory usage in bytes (raw data)
+    memory_total: u64, // Total memory in bytes (raw data)
     disk_usage: Vec<u64>, // Disk usage in bytes (raw data)
 }
 
@@ -34,6 +35,7 @@ async fn get_metrics(query: Query<AuthQuery>) -> Result<Json<Metrics>, StatusCod
         total_cpu_usage: get_total_cpu_usage(&sys),
         individual_cpu_usage: get_individual_cpu_usage(&sys),
         memory_usage: sys.used_memory(),
+        memory_total: sys.total_memory(),
         disk_usage: get_disk_usage(),
     }))
 }
