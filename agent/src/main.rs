@@ -7,7 +7,8 @@ use std::env;
 
 #[derive(Serialize)]
 struct Metrics {
-    cpu_usage: Vec<f32>, // CPU usage percentage
+    total_cpu_usage: f32, // CPU usage percentage averages across all cores
+    individual_cpu_usage: Vec<f32>, // CPU usage percentage for each core
     memory_usage: u64, // Memory usage in bytes (raw data)
     disk_usage: Vec<u64>, // Disk usage in bytes (raw data)
 }
@@ -26,25 +27,29 @@ async fn get_metrics(query: Query<AuthQuery>) -> Result<Json<Metrics>, StatusCod
 
     let mut sys = System::new_all();
     sys.refresh_all();
+    std::thread::sleep(std::time::Duration::from_millis(1000)); // Wait for a second
+    sys.refresh_all(); // Second refresh to get actual usage
 
-    let cpu_usage = get_cpu_usage(&sys); // CPU usage in percentage
-
-    let memory_usage = sys.used_memory(); // Memory usage in bytes
-
-    let disk_usage = get_disk_usage(); // Disk usage in bytes
-                                                         
     Ok(Json(Metrics {
-        cpu_usage,
-        memory_usage,
-        disk_usage,
+        total_cpu_usage: get_total_cpu_usage(&sys),
+        individual_cpu_usage: get_individual_cpu_usage(&sys),
+        memory_usage: sys.used_memory(),
+        disk_usage: get_disk_usage(),
     }))
 }
 
-fn get_cpu_usage(sys: &System) -> Vec<f32> {
+fn get_total_cpu_usage(sys: &System) -> f32 {
     sys.cpus()
         .iter()
         .map(|cpu| cpu.cpu_usage())
-        .collect() // Collect CPU usage values into a vector
+        .sum::<f32>() / sys.cpus().len() as f32
+}
+
+fn get_individual_cpu_usage(sys: &System) -> Vec<f32> {
+    sys.cpus()
+        .iter()
+        .map(|cpu| cpu.cpu_usage())
+        .collect()
 }
 
 fn get_disk_usage() -> Vec<u64> {

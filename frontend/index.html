@@ -162,7 +162,9 @@
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M176 24c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 40c-35.3 0-64 28.7-64 64l-40 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l40 0 0 56-40 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l40 0 0 56-40 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l40 0c0 35.3 28.7 64 64 64l0 40c0 13.3 10.7 24 24 24s24-10.7 24-24l0-40 56 0 0 40c0 13.3 10.7 24 24 24s24-10.7 24-24l0-40 56 0 0 40c0 13.3 10.7 24 24 24s24-10.7 24-24l0-40c35.3 0 64-28.7 64-64l40 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-40 0 0-56 40 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-40 0 0-56 40 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-40 0c0-35.3-28.7-64-64-64l0-40c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 40-56 0 0-40c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 40-56 0 0-40zM160 128l192 0c17.7 0 32 14.3 32 32l0 192c0 17.7-14.3 32-32 32l-192 0c-17.7 0-32-14.3-32-32l0-192c0-17.7 14.3-32 32-32zm192 32l-192 0 0 192 192 0 0-192z"/></svg>
 				</div>
 				<h2>CPU</h2>
-				<p>Usage: <span id="cpuUsage">Loading...</span></p>
+				<p>Total Usage: <span id="totalCpuUsage">Loading...</span></p>
+				<p><b>Individual Core Usage:</b></p>
+				<p><span id="individualCpuUsage">Loading...</span></p>
 			</div>
 			<div class="card">
 				<div class="icon-container">
@@ -233,7 +235,8 @@
 				}
 
 				const data = await response.json();
-				document.getElementById("cpuUsage").textContent = formatCpuUsage(data.cpu_usage);
+				document.getElementById("totalCpuUsage").textContent = formatTotalCpuUsage(data.total_cpu_usage);
+				document.getElementById("individualCpuUsage").innerHTML = formatIndividualCpuUsage(data.individual_cpu_usage);
 				document.getElementById("memoryUsage").textContent = formatMemoryUsage(data.memory_usage);
 				document.getElementById("diskUsage").textContent = formatDiskUsage(data.disk_usage);
 			} catch (error) {
@@ -241,9 +244,12 @@
 			}
 		}
 
-		function formatCpuUsage(cpus) {
-			const totalUsage = cpus.reduce((acc, cpu) => acc + cpu);
-			return (totalUsage / cpus.length).toFixed(0) + "%";
+		function formatTotalCpuUsage(totalUsage) {
+			return totalUsage.toFixed(0) + "%";
+		}
+
+		function formatIndividualCpuUsage(individualUsage) {
+			return individualUsage.map((usage, index) => `Core ${index + 1}: ${usage.toFixed(0)}%`).join(", <br />");
 		}
 
 		function formatMemoryUsage(bytes) {
