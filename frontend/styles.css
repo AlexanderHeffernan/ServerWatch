@@ -103,6 +103,14 @@ body {
     cursor: pointer;
     margin: 0 auto;
 }
+
+.container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: row;
+}
+
 h1 {
     text-align: center;
 }
@@ -119,7 +127,7 @@ p {
 }
 .card {
     background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
