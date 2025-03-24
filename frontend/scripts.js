@@ -1,6 +1,7 @@
 let currentIP = "";
 let currentPassword = "";
 let demoMode = false;
+const chartInstances = new Map(); // To store Chart.js instances by canvas ID
 
 const rememberMeCheck = document.getElementById("rememberMe");
 
@@ -71,7 +72,8 @@ async function getMetrics(ip, password) {
                 disk_usage: Array.from({ length: 4 }, () => Math.random() * 1024 * 1024 * 1024 * 8)
             };
         }
-        document.getElementById("totalCpuUsage").textContent = formatTotalCpuUsage(data.total_cpu_usage);
+    
+        drawGauge(data.total_cpu_usage, document.getElementById("cpu-gauge").getContext("2d"), "cpu-gauge");
         document.getElementById("individualCpuUsage").innerHTML = formatIndividualCpuUsage(data.individual_cpu_usage);
         document.getElementById("memoryUsage").textContent = formatMemoryUsage(data.memory_usage);
         document.getElementById("memoryTotal").textContent = formatMemoryUsage(data.memory_total);
@@ -104,4 +106,57 @@ function formatDiskUsage(disk_usage) {
     // Disk usage is an array of the usage of each disk
     // Format disk usage from bytes used to GB
     return disk_usage.map((disk, index) => (disk / 1024 / 1024 / 1024).toFixed(2) + "GB").join(", ");
+}
+
+// Function to flip the card
+function flipCard(cardId) {
+    const card = document.querySelector(`#${cardId} .card-flip`);
+    card.classList.toggle('flipped');
+}
+
+function drawGauge(cpuUsage, ctx, canvasId) {
+    // Destroy the previous chart instance for this canvas, if it exists
+    if (chartInstances.has(canvasId)) {
+        chartInstances.get(canvasId).destroy();
+    }
+
+    // Chart.js configuration for a circular gauge
+    const newGauge = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                data: [cpuUsage, 100 - cpuUsage],
+                backgroundColor: ['#0072F5', 'rgba(0,0,0,0)'],
+                borderWidth: 0,
+                circumference: 270,
+                rotation: 225,
+                borderRadius: 10
+            }]
+        },
+        options: {
+            cutout: '80%', // Thickness of the gauge
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }, // Hide legend
+                tooltip: { enabled: false } // Disable tooltips
+            }
+        },
+        plugins: [{
+            id: 'centerText',
+            afterDraw(chart) {
+                const { ctx, width, height } = chart;
+                ctx.save();
+                ctx.font = 'bold 20px Arial';
+                ctx.fillStyle = '#0072F5';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`${Math.round(cpuUsage)}%`, width / 2, height / 2);
+                ctx.restore();
+            }
+        }]
+    });
+
+    // Store the new chart instance in the Map
+    chartInstances.set(canvasId, newGauge);
 }
