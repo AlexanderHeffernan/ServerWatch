@@ -7,132 +7,7 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
-	<style>
-		* {
-			box-sizing: border-box;
-			font-family: 'Roboto', sans-serif;
-		}
-		body {
-			font-family: 'Roboto', sans-serif;
-			margin: 20px;
-			padding: 0;
-			background-color: #F1F3F4;
-		}
-		.popup {
-			position: fixed;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			background: rgba(0, 0, 0, 0.5);
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			z-index: 1;
-			backdrop-filter: blur(5px);
-		}
-		.popup-content {
-			background: white;
-			padding: 20px;
-			border-radius: 8px;
-			box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-			width: 100%;
-			max-width: 400px;
-			margin: 20px;
-		}
-		.popup-content p {
-			font-size: 14px;
-			color: #666;
-			text-align: center;
-		}
-		.popup-content label {
-			font-size: 14px;
-			font-weight: bold;
-		}
-		.popup-content .input-container {
-			width: 100%;
-			box-sizing: border-box;
-			border-bottom: 1px solid #ccc;
-			display: flex;
-			align-items: center;
-			padding: 8px 0;
-		}
-		.popup-content svg {
-			width: 20px;
-			height: 20px;
-			fill: #666;
-		}
-		.popup-content .input-container input {
-			width: calc(100% - 20px);
-			padding: 10px;
-			font-size: 16px;
-			box-sizing: border-box;
-			border: none;
-			outline: none;
-			color: #333;
-		}
-		.popup-content .input-container input::placeholder {
-			color: #666;
-			font-weight: 300;
-		}
-		.popup-content button {
-			width: 100%;
-			padding: 10px;
-			font-size: 16px;
-			display: block;
-			box-sizing: border-box;
-			border: none;
-			outline: none;
-			background: #1A73E8;
-			color: white;
-			border-radius: 24px;
-			font-weight: bold;
-			transition: background 0.3s;
-			cursor: pointer;
-		}
-		.popup-content button:hover {
-			background: #0F5AF3;
-			cursor: pointer;
-		}
-		h1 {
-			text-align: center;
-		}
-		p {
-			font-size: 18px;
-		}
-		.hidden {
-			display: none;	
-		}
-		.cards-container {
-			display: flex;
-			margin-top: 20px;
-			gap: 20px;
-		}
-		.card {
-			background: white;
-			padding: 20px;
-			border-radius: 8px;
-			box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-			width: 200px;
-		}
-
-		.card .icon-container {
-			display: flex;
-			justify-content: center;
-			margin-bottom: 10px;
-			background-color: #1A73E8;
-			color: white;
-			padding: 10px;
-			border-radius: 50%;
-			width: 50px;
-		}
-
-		.card .icon-container svg {
-			width: 30px;
-			height: 30px;
-			fill: white;
-		}
-	</style>
+	<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 	<div id="connect-popup" class="popup">
@@ -150,8 +25,9 @@
 				<input type="password" id="password" placeholder="Type your password">
 			</div><br />
 			<input type="checkbox" value="rememberMeValue" id="rememberMe"> <label for="rememberMe">Remember me</label><br /><br />
-			<button onclick="fetchMetrics()">Connect</button>
+			<button class="primary" onclick="fetchMetrics()">Connect</button>
 			<p>Make sure the ServerWatch agent is running on your machine before connecting.</p>
+			<button class="secondary" onclick="tryDemo()">Try Demo</button>
 		</div>
 	</div>
 	<div class="container">
@@ -183,96 +59,6 @@
 			</div>
 		</div>
 	</div>
-
-	<script>
-		let currentIP = "";
-		let currentPassword = "";
-
-		const rememberMeCheck = document.getElementById("rememberMe");
-
-		if (localStorage.getItem("ipAddress") && localStorage.getItem("password")) {
-			document.getElementById("ipAddress").value = localStorage.getItem("ipAddress");
-			document.getElementById("password").value = localStorage.getItem("password");
-			rememberMeCheck.checked = true;
-		}
-		
-		async function fetchMetrics() {
-			const ip = document.getElementById("ipAddress").value.trim();
-			const password = document.getElementById("password").value.trim();
-
-			if (!ip || !password) {
-				alert("Please enter a valid IP address and password.");
-				return;
-			}
-
-			currentIP = ip; // Save for refresh button
-			currentPassword = password;
-			try {
-				await getMetrics(ip, password);
-			} catch (error) {
-				console.error("Error from fetching metrics!", error);
-				return;
-			}
-
-			if (rememberMeCheck.checked) {
-				localStorage.setItem("ipAddress", ip);
-				localStorage.setItem("password", password);
-			} else {
-				localStorage.removeItem("ipAddress");
-				localStorage.removeItem("password");
-			}
-
-			document.getElementById("connect-popup").classList.add("hidden");
-		}
-
-		async function refreshMetrics() {
-			if (currentIP && currentPassword) {
-				try {		
-					await getMetrics(currentIP, currentPassword);
-				} catch (error) {
-					console.error("Error from refreshing metrics!", error);
-				}
-			}
-		}
-
-		async function getMetrics(ip, password) {
-			try {
-				const response = await fetch(`http://${ip}:8080/metrics?password=${encodeURIComponent(password)}`);
-				
-				if (response.status === 401) {
-					alert("Unauthorized: Incorrect password.");
-					return new Error("Unable to fetch metrics: ", error);
-				}
-
-				const data = await response.json();
-				document.getElementById("totalCpuUsage").textContent = formatTotalCpuUsage(data.total_cpu_usage);
-				document.getElementById("individualCpuUsage").innerHTML = formatIndividualCpuUsage(data.individual_cpu_usage);
-				document.getElementById("memoryUsage").textContent = formatMemoryUsage(data.memory_usage);
-				document.getElementById("memoryTotal").textContent = formatMemoryUsage(data.memory_total);
-				document.getElementById("diskUsage").textContent = formatDiskUsage(data.disk_usage);
-			} catch (error) {
-				alert(`Unable to find agent at ${ip}:8080/metrics. Ensure agent script is running.`);
-				throw new Error("Unable to fetch metrics!", error);
-			}
-		}
-
-		function formatTotalCpuUsage(totalUsage) {
-			return totalUsage.toFixed(0) + "%";
-		}
-
-		function formatIndividualCpuUsage(individualUsage) {
-			return individualUsage.map((usage, index) => `Core ${index + 1}: ${usage.toFixed(0)}%`).join(", <br />");
-		}
-
-		function formatMemoryUsage(bytes) {
-			return (bytes / 1024 / 1024 / 1024).toFixed(2) + "GB";
-		}
-
-		function formatDiskUsage(disk_usage) {
-			// Disk usage is an array of the usage of each disk
-			// Format disk usage from bytes used to GB
-			return disk_usage.map((disk, index) => (disk / 1024 / 1024 / 1024).toFixed(2) + "GB").join(", ");
-		}
-	</script>
+	<script src="scripts.js"></script>
 </body>
 </html>
