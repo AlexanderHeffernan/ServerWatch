@@ -16,7 +16,7 @@
 }
 
 .card:hover {
-    box-shadow: 0 0 15px #0072F5, 0 0 30px rgba(0, 114, 245, 0.5); /* Neon blue glow */
+    box-shadow: 0 0 15px var(--primary-light-color), 0 0 30px rgba(197, 26, 74, 0.5);
 }
 
 .card.small {

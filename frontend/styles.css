@@ -1,3 +1,12 @@
+:root {
+    --primary-color: #C51A4A;
+    --primary-dark-color: #5D1A2A;
+    --primary-light-color: #E0557A;
+    --background-color: #263238;
+    --accent-color: #43A047;
+    --accent-dark-color: #00701A;
+}
+
 * {
     box-sizing: border-box;
     font-family: 'Roboto', sans-serif;
@@ -8,7 +17,7 @@ body {
     padding: 0;
     background: rgb(0,114,245);
     min-height: 100vh;
-    background: radial-gradient(circle, rgba(0,114,245,1) 0%, rgba(0,77,151,1) 33%, rgba(3,22,57,1) 100%);
+    background: linear-gradient(135deg, var(--background-color) 0%, var(--primary-color) 50%, var(--primary-dark-color) 100%);
     background-size: cover;
 }
 .popup {
@@ -25,7 +34,7 @@ body {
     backdrop-filter: blur(5px);
 }
 .popup-content {
-    background: white;
+    background: var(--background-color);
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
@@ -33,12 +42,17 @@ body {
     max-width: 400px;
     margin: 20px;
 }
+.popup-content h1 {
+    text-align: center;
+    color: var(--primary-color);
+}
 .popup-content p {
     font-size: 14px;
-    color: #666;
+    color: white;
     text-align: center;
 }
 .popup-content label {
+    color: white;
     font-size: 14px;
     font-weight: bold;
 }
@@ -53,7 +67,7 @@ body {
 .popup-content svg {
     width: 20px;
     height: 20px;
-    fill: #666;
+    fill: #a7a7a7;
 }
 .popup-content .input-container input {
     width: calc(100% - 20px);
@@ -62,10 +76,11 @@ body {
     box-sizing: border-box;
     border: none;
     outline: none;
-    color: #333;
+    color: white;
+    background: rgba(0,0,0,0);
 }
 .popup-content .input-container input::placeholder {
-    color: #666;
+    color: #a7a7a7;
     font-weight: 300;
 }
 .popup-content button.primary {
@@ -76,7 +91,7 @@ body {
     box-sizing: border-box;
     border: none;
     outline: none;
-    background: #1A73E8;
+    background: var(--accent-color);
     color: white;
     border-radius: 24px;
     font-weight: bold;
@@ -84,7 +99,7 @@ body {
     cursor: pointer;
 }
 .popup-content button.primary:hover {
-    background: #0F5AF3;
+    background: var(--accent-dark-color);
     cursor: pointer;
 }
 .popup-content button.secondary {
@@ -95,13 +110,17 @@ body {
     box-sizing: border-box;
     border: none;
     outline: none;
-    background: #4A90E2;
-    color: white;
+    background: rgba(0,0,0,0);
+    color: var(--accent-color);
     border-radius: 24px;
     font-weight: bold;
-    transition: background 0.3s;
+    transition: color 0.3s;
     cursor: pointer;
     margin: 0 auto;
+}
+.popup-content button.secondary:hover {
+    color: var(--accent-dark-color);
+    cursor: pointer;
 }
 
 .container {

@@ -160,7 +160,7 @@ function drawGauge(cpuUsage, ctx, canvasId) {
         data: {
             datasets: [{
                 data: [cpuUsage, 100 - cpuUsage],
-                backgroundColor: ['#0072F5', 'rgba(0,0,0,0)'],
+                backgroundColor: ['#C51A4A', 'rgba(0,0,0,0)'],
                 borderWidth: 0,
                 circumference: 270,
                 rotation: 225,
@@ -182,7 +182,7 @@ function drawGauge(cpuUsage, ctx, canvasId) {
                 const { ctx, width, height } = chart;
                 ctx.save();
                 ctx.font = 'bold 20px Arial';
-                ctx.fillStyle = '#0072F5';
+                ctx.fillStyle = '#C51A4A';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(`${Math.round(cpuUsage)}%`, width / 2, height / 2);
