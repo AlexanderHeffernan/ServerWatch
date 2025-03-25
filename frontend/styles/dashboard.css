@@ -2,6 +2,7 @@
     display: flex;
     margin-top: 20px;
     gap: 20px;
+    flex-wrap: wrap;
 }
 .card {
     background: rgba(0, 0, 0, 0.5);
@@ -98,4 +99,20 @@
 canvas {
     width: 100% !important;
     height: 100% !important;
+}
+
+/* Media query for mobile screens (e.g., <= 768px) */
+@media (max-width: 768px) {
+    .card.small {
+        width: calc(50% - 10px);
+        height: 0;
+            padding-bottom: calc(50% - 30px);
+    }
+}
+
+/* Optional: Adjust main content padding on mobile */
+@media (max-width: 480px) {
+    .content {
+        padding: 10px;
+    }
 }

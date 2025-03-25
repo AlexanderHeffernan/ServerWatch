@@ -19,6 +19,14 @@ body {
     min-height: 100vh;
     background: linear-gradient(135deg, var(--background-color) 0%, var(--primary-color) 50%, var(--primary-dark-color) 100%);
     background-size: cover;
+    overflow-x: hidden;
+}
+
+.content {
+    flex: 1;
+    padding: 20px;
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
 }
 .popup {
     position: fixed;
@@ -138,4 +146,18 @@ p {
 }
 .hidden {
     display: none;	
+}
+
+/* Media query for mobile screens (e.g., <= 768px) */
+@media (max-width: 768px) {
+    .content {
+        margin-left: 0; /* No margin when sidebar is hidden */
+    }
+}
+
+/* Optional: Adjust main content padding on mobile */
+@media (max-width: 480px) {
+    .content {
+        padding: 10px;
+    }
 }

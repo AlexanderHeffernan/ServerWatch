@@ -66,6 +66,21 @@ function flipCard(cardId) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Prepare sidebar
+    const sidebar = document.getElementById("sidebar");
+    const toggleButton = document.getElementById("sidebarToggle");
+
+    toggleButton.addEventListener("click", () => {
+        sidebar.classList.toggle("open");
+    });
+
+    // Optional: Close sidebar when clicking outside on mobile
+    document.addEventListener("click", (event) => {
+        if (!sidebar.contains(event.target) && !toggleButton.contains(event.target)) {
+            sidebar.classList.remove("open");
+        }
+    });
+    
     // Event Listeners
     const fetchMetricsBtn = document.getElementById("fetchMetricsBtn");
     const refreshMetricsBtn = document.getElementById("refreshMetricsBtn");
