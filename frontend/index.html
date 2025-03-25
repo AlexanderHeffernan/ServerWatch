@@ -93,9 +93,19 @@
 						</div>
 					</div>
 				</div>
-				<div class="card">
-					<h2>Disk</h2>
-					<p>Usage: <span id="diskUsage">Loading...</span></p>
+				<div class="card small" id="disk-usage-card" onclick="flipCard('disk-usage-card')">
+					<div class="card-flip">
+						<div class="card-face card-front">
+							<h3>Disk Usage</h3>
+							<div class="gauge-container">
+								<canvas id="disk-gauge"></canvas>
+							</div>
+						</div>
+						<div class="card-face card-back">
+							<h4>Disk Usage Details</h4>
+							<p><span id="individualDiskUsage">Loading...</span></p>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>

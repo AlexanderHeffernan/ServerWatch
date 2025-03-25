@@ -70,7 +70,28 @@ async function getMetrics(ip, password) {
                 memory_usage: Math.random() * 1024 * 1024 * 1024 * 16,
                 memory_total: 1024 * 1024 * 1024 * 32,
                 cpu_temperature: Math.random() * 100,
-                disk_usage: Array.from({ length: 4 }, () => Math.random() * 1024 * 1024 * 1024 * 8)
+                disks: [
+                    {
+                        name: "C",
+                        usage: Math.random() * 1024 * 1024 * 1024 * 8,
+                        capacity: Math.random() * 1024 * 1024 * 1024 * 8
+                    },
+                    {
+                        name: "D",
+                        usage: Math.random() * 1024 * 1024 * 1024 * 8,
+                        capacity: Math.random() * 1024 * 1024 * 1024 * 8
+                    },
+                    {
+                        name: "E",
+                        usage: Math.random() * 1024 * 1024 * 1024 * 8,
+                        capacity: Math.random() * 1024 * 1024 * 1024 * 8
+                    },
+                    {
+                        name: "F",
+                        usage: Math.random() * 1024 * 1024 * 1024 * 8,
+                        capacity: Math.random() * 1024 * 1024 * 1024 * 8
+                    }
+                ]
             };
         }
     
@@ -87,7 +108,10 @@ async function getMetrics(ip, password) {
 
         // Update the CPU Temperature Card
         document.getElementById("cpuTemperature").textContent = data.cpu_temperature.toFixed(0) + "°C";
-        document.getElementById("diskUsage").textContent = formatDiskUsage(data.disk_usage);
+
+        // Update the Disk Usage Card
+        drawGauge(data.disks[0].usage / data.disks[0].capacity * 100, document.getElementById("disk-gauge").getContext("2d"), "disk-gauge");
+        document.getElementById("individualDiskUsage").innerHTML = data.disks.map(disk => `${disk.name}: ${((disk.usage / disk.capacity) * 100).toFixed(2)}%`).join(", <br />");
     } catch (error) {
         alert(`Unable to find agent at ${ip}:8080/metrics. Ensure agent script is running.`);
         throw new Error("Unable to fetch metrics!", error);
