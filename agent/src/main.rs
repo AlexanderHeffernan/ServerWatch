@@ -6,13 +6,29 @@ use std::net::SocketAddr;
 use std::env;
 
 #[derive(Serialize)]
+struct TemperatureComponent {
+    label: String,
+    temperature: u64,
+    max: u64,
+    critical: u64,
+}
+
+#[derive(Serialize)]
+struct Disk {
+    label: String,
+    total: u64,
+    used: u64,
+}
+
+#[derive(Serialize)]
 struct Metrics {
     total_cpu_usage: f32, // CPU usage percentage averages across all cores
     individual_cpu_usage: Vec<f32>, // CPU usage percentage for each core
     memory_usage: u64, // Memory usage in bytes (raw data)
     memory_total: u64, // Total memory in bytes (raw data)
     cpu_temperature: u64, // Temperature without formatting (25)
-    disk_usage: Vec<u64>, // Disk usage in bytes (raw data)
+    individual_temperatures: Vec<TemperatureComponent>, // Temperature for each component
+    disks: Vec<Disk>,
 }
 
 #[derive(Deserialize)]
@@ -38,7 +54,8 @@ async fn get_metrics(query: Query<AuthQuery>) -> Result<Json<Metrics>, StatusCod
         memory_usage: sys.used_memory(),
         memory_total: sys.total_memory(),
         cpu_temperature: get_temperature(),
-        disk_usage: get_disk_usage(),
+        individual_temperatures: get_individual_temperatures(),
+        disks: get_disks(),
     }))
 }
 
@@ -69,10 +86,27 @@ fn get_temperature() -> u64 {
     return components[0].temperature().unwrap_or(0.0) as u64;
 }
 
-fn get_disk_usage() -> Vec<u64> {
+fn get_individual_temperatures() -> Vec<TemperatureComponent> {
+    let components = Components::new_with_refreshed_list();
+    components
+        .iter()
+        .map(|component| TemperatureComponent {
+            label: component.label().to_string(),
+            temperature: component.temperature().unwrap_or(0.0) as u64,
+            max: component.max().unwrap_or(0.0) as u64,
+            critical: component.critical().unwrap_or(0.0) as u64,
+        })
+        .collect()
+}
+
+fn get_disks() -> Vec<Disk> {
     Disks::new_with_refreshed_list()
         .iter()
-        .map(|disk| disk.total_space() - disk.available_space())
+        .map(|disk| Disk {
+            label: disk.file_system().to_string_lossy().into_owned(),
+            total: disk.total_space(),
+            used: disk.total_space() - disk.available_space(),
+        })
         .collect()
 }
 

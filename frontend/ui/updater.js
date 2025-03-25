@@ -1,5 +1,5 @@
 import { drawGauge } from "../charts/gauges.js";
-import { formatPercentage, formatMemory, formatIndividualCpu, formatTemperature } from "../utils/formatters.js";
+import { formatPercentage, formatMemory, formatIndividualCpu, formatTemperature, formatIndividualTemperature } from "../utils/formatters.js";
 
 // Update UI elements with fetched data
 export function updateUI(data) {
@@ -17,8 +17,11 @@ export function updateUI(data) {
 
     // CPU Temperature
     document.getElementById("cpuTemperature").textContent = formatTemperature(data.cpu_temperature);
+    document.getElementById("individualComponentTemp").innerHTML = formatIndividualTemperature(data.individual_temperatures)
 
-    // Disk Usage (uncomment if needed)
-    // drawGauge(data.disks[0].usage / data.disks[0].capacity * 100, document.getElementById("disk-gauge").getContext("2d"), "disk-gauge");
-    // document.getElementById("individualDiskUsage").innerHTML = data.disks.map(disk => `${disk.name}: ${formatPercentage((disk.usage / disk.capacity) * 100)}`).join(", <br />");
+    // Disk Usage
+    drawGauge(data.disks[0].used / data.disks[0].total * 100, document.getElementById("disk-gauge").getContext("2d"), "disk-gauge");
+    document.getElementById("individualDiskUsage").innerHTML = data.disks.map(disk => 
+        `${disk.label}: Used: ${formatMemory(disk.used)}, Total: ${formatMemory(disk.total)}, Percentage: ${formatPercentage((disk.used / disk.total) * 100)}`
+    ).join(", <br />");
 }

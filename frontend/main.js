@@ -22,6 +22,7 @@ function initialize() {
 }
 
 async function handleFetchMetrics() {
+    if (demoMode) { updateUI(await fetchMetrics("", "", demoMode)); return; }
     const ip = ipInput.value.trim();
     const password = passwordInput.value.trim();
 
@@ -35,6 +36,7 @@ async function handleFetchMetrics() {
 
     try {
         const data = await fetchMetrics(ip, password, demoMode);
+        console.log("Data: ", data);
         updateUI(data);
         saveCredentials(ip, password, rememberMeCheck.checked);
         connectPopup.classList.add("hidden");

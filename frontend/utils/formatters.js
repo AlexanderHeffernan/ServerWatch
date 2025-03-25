@@ -14,3 +14,9 @@ export function formatIndividualCpu(usageArray) {
 export function formatTemperature(temp) {
     return `${Math.round(temp)}°C`;
 }
+
+export function formatIndividualTemperature(tempArray) {
+    return tempArray.map(({ label, temperature, max, critical }) => 
+        `${label}: ${formatTemperature(temperature)} (Max: ${formatTemperature(max)}, Critical: ${formatTemperature(critical)})`
+    ).join(", <br />");
+}

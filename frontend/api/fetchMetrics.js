@@ -12,7 +12,6 @@ export async function fetchMetrics(ip, password, demoMode = false) {
             if (response.status === 404) throw new Error(`Agent not found at ${ip}:8080/metrics. Ensure agent script is running.`);
             throw new Error(`HTTP error: ${response.status} - ${response.statusText}`);
         }
-
         return await response.json();
     } catch (error) {
         if (error.name === "TypeError") throw new Error(`Network error: Unable to connect to ${ip}:8080. Check network or agent status.`);
@@ -27,10 +26,16 @@ function generateDemoData() {
         memory_usage: Math.random() * 1024 * 1024 * 1024 * 16,
         memory_total: 1024 * 1024 * 1024 * 32,
         cpu_temperature: Math.random() * 100,
+        individual_temperatures: Array(4).fill().map((_, i) => ({
+            label: String.fromCharCode(65 + i), // A, B, C, D
+            temperature: Math.random() * 100,
+            max: Math.random() * 100,
+            critical: Math.random * 100
+        })),
         disks: Array(4).fill().map((_, i) => ({
-            name: String.fromCharCode(67 + i), // C, D, E, F
-            usage: Math.random() * 1024 * 1024 * 1024 * 8,
-            capacity: Math.random() * 1024 * 1024 * 1024 * 8
+            label: String.fromCharCode(67 + i), // C, D, E, F
+            total: Math.random() * 1024 * 1024 * 1024 * 8,
+            used: Math.random() * 1024 * 1024 * 1024 * 8
         }))
     };
 }
