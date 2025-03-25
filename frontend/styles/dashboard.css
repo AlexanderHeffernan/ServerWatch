@@ -51,7 +51,7 @@
     backface-visibility: hidden; /* Hide the back face when not facing the user */
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 10px;
 }
   
 .card-front {
@@ -81,6 +81,11 @@
 .card p {
     margin: 0;
     font-size: 12px;
+}
+
+.card p.key-figure {
+    font-size: 40px;
+    font-weight: bold;
 }
 
 .gauge-container {

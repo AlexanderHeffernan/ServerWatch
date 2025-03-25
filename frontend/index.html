@@ -72,10 +72,24 @@
 						</div>
 						<div class="card-face card-back">
 							<h4>Memory Usage Details</h4>
-							<p>Used Memory: <span id="memoryUsage">Loading...</span></p>
-							<p>Total Memory: <span id="memoryTotal">Loading...</span></p>
-							<p>Free Memory: <span id="memoryFree">Loading...</span></p>
-							<p>Percentage Used: <span id="memoryPercentage">Loading...</span></p>
+							<div>
+								<p>Used Memory: <span id="memoryUsage">Loading...</span></p>
+								<p>Total Memory: <span id="memoryTotal">Loading...</span></p>
+								<p>Free Memory: <span id="memoryFree">Loading...</span></p>
+								<p>Percentage Used: <span id="memoryPercentage">Loading...</span></p>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="card small" id="temperature-card" onclick="flipCard('temperature-card')">
+					<div class="card-flip">
+						<div class="card-face card-front">
+							<h3>CPU Temperature</h3>
+							<p class="key-figure"><span id="cpuTemperature">Loading...</span></p>
+						</div>
+						<div class="card-face card-back">
+							<h4>Other Temperature Details</h4>
+							<p>Coming soon...</p>
 						</div>
 					</div>
 				</div>
