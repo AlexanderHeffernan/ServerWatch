@@ -67,16 +67,23 @@ async function getMetrics(ip, password) {
             data = {
                 total_cpu_usage: Math.random() * 100,
                 individual_cpu_usage: Array.from({ length: 4 }, () => Math.random() * 100),
-                memory_usage: Math.random() * 1024 * 1024 * 1024 * 8,
-                memory_total: 1024 * 1024 * 1024 * 16,
+                memory_usage: Math.random() * 1024 * 1024 * 1024 * 32,
+                memory_total: Math.random() * 1024 * 1024 * 1024 * 32,
                 disk_usage: Array.from({ length: 4 }, () => Math.random() * 1024 * 1024 * 1024 * 8)
             };
         }
     
+        // Update the CPU Usage Card
         drawGauge(data.total_cpu_usage, document.getElementById("cpu-gauge").getContext("2d"), "cpu-gauge");
         document.getElementById("individualCpuUsage").innerHTML = formatIndividualCpuUsage(data.individual_cpu_usage);
+
+        // Update the Memory Usage Card
+        drawGauge(data.memory_usage / data.memory_total * 100, document.getElementById("memory-gauge").getContext("2d"), "memory-gauge");
         document.getElementById("memoryUsage").textContent = formatMemoryUsage(data.memory_usage);
         document.getElementById("memoryTotal").textContent = formatMemoryUsage(data.memory_total);
+        document.getElementById("memoryFree").textContent = formatMemoryUsage(data.memory_total - data.memory_usage);
+        document.getElementById("memoryPercentage").textContent = ((data.memory_usage / data.memory_total) * 100).toFixed(2) + "%";
+
         document.getElementById("diskUsage").textContent = formatDiskUsage(data.disk_usage);
     } catch (error) {
         alert(`Unable to find agent at ${ip}:8080/metrics. Ensure agent script is running.`);
