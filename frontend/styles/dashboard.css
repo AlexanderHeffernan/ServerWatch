@@ -106,7 +106,7 @@ canvas {
     .card.small {
         width: calc(50% - 10px);
         height: 0;
-            padding-bottom: calc(50% - 30px);
+        padding-bottom: calc(50% - 30px);
     }
 }
 
