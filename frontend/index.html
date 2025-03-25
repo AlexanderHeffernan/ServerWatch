@@ -30,9 +30,9 @@
 				<input type="password" id="password" placeholder="Type your password">
 			</div><br />
 			<input type="checkbox" value="rememberMeValue" id="rememberMe"> <label for="rememberMe">Remember me</label><br /><br />
-			<button class="primary" onclick="fetchMetrics()">Connect</button>
+			<button class="primary" id="fetchMetricsBtn"">Connect</button>
 			<p>Make sure the ServerWatch agent is running on your machine before connecting.</p>
-			<button class="secondary" onclick="tryDemo()">Try Demo</button>
+			<button class="secondary" id="tryDemoBtn">Try Demo</button>
 		</div>
 	</div>
 	<div class="container">
@@ -47,9 +47,9 @@
 			</div>
 		</div>
 		<div class="content">
-			<button onclick="refreshMetrics()" id="refreshBtn">Refresh</button>
+			<button id="refreshMetricsBtn">Refresh</button>
 			<div class="cards-container">
-				<div class="card small" id="cpu-usage-card" onclick="flipCard('cpu-usage-card')">
+				<div class="card small flip-card" id="cpu-usage-card"">
 					<div class="card-flip">
 						<div class="card-face card-front">
 							<h3>CPU Usage</h3>
@@ -63,7 +63,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="card small" id="memory-usage-card" onclick="flipCard('memory-usage-card')">
+				<div class="card small flip-card" id="memory-usage-card"">
 					<div class="card-flip">
 						<div class="card-face card-front">
 							<h3>Memory Usage</h3>
@@ -82,7 +82,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="card small" id="temperature-card" onclick="flipCard('temperature-card')">
+				<div class="card small flip-card" id="temperature-card">
 					<div class="card-flip">
 						<div class="card-face card-front">
 							<h3>CPU Temperature</h3>
@@ -94,7 +94,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="card small" id="disk-usage-card" onclick="flipCard('disk-usage-card')">
+				<div class="card small flip-card" id="disk-usage-card">
 					<div class="card-flip">
 						<div class="card-face card-front">
 							<h3>Disk Usage</h3>
@@ -111,6 +111,6 @@
 			</div>
 		</div>
 	</div>
-	<script src="scripts.js"></script>
+	<script type="module" src="main.js"></script>
 </body>
 </html>
