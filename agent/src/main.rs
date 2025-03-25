@@ -1,7 +1,7 @@
 use axum::{routing::get,Router,Json,http::Method, extract::Query, http::StatusCode};
 use tower_http::cors::{CorsLayer, Any};
 use serde::{Serialize, Deserialize};
-use sysinfo::{Disks, System};
+use sysinfo::{Disks, System, Components};
 use std::net::SocketAddr;
 use std::env;
 
@@ -11,6 +11,7 @@ struct Metrics {
     individual_cpu_usage: Vec<f32>, // CPU usage percentage for each core
     memory_usage: u64, // Memory usage in bytes (raw data)
     memory_total: u64, // Total memory in bytes (raw data)
+    cpu_temperature: u64, // Temperature without formatting (25)
     disk_usage: Vec<u64>, // Disk usage in bytes (raw data)
 }
 
@@ -36,6 +37,7 @@ async fn get_metrics(query: Query<AuthQuery>) -> Result<Json<Metrics>, StatusCod
         individual_cpu_usage: get_individual_cpu_usage(&sys),
         memory_usage: sys.used_memory(),
         memory_total: sys.total_memory(),
+        cpu_temperature: get_temperature(),
         disk_usage: get_disk_usage(),
     }))
 }
@@ -52,6 +54,19 @@ fn get_individual_cpu_usage(sys: &System) -> Vec<f32> {
         .iter()
         .map(|cpu| cpu.cpu_usage())
         .collect()
+}
+
+fn get_temperature() -> u64 {
+    let components = Components::new_with_refreshed_list();
+    for component in &components {
+        if component.label().contains("cpu") {
+            return component.temperature().unwrap_or(0.0) as u64;
+        }
+    }
+    if components.is_empty() {
+        return 0;
+    }
+    return components[0].temperature().unwrap_or(0.0) as u64;
 }
 
 fn get_disk_usage() -> Vec<u64> {

@@ -53,15 +53,12 @@ async function refreshMetrics() {
 async function getMetrics(ip, password) {
     try {
         let data = {};
-        console.log("Demo mode:",demoMode);
         if (!demoMode) {
             const response = await fetch(`http://${ip}:8080/metrics?password=${encodeURIComponent(password)}`);
-        
             if (response.status === 401) {
                 alert("Unauthorized: Incorrect password.");
                 return new Error("Unable to fetch metrics: ", error);
             }
-
             data = await response.json();
         } else {
             data = {
@@ -110,8 +107,8 @@ async function getMetrics(ip, password) {
         document.getElementById("cpuTemperature").textContent = data.cpu_temperature.toFixed(0) + "°C";
 
         // Update the Disk Usage Card
-        drawGauge(data.disks[0].usage / data.disks[0].capacity * 100, document.getElementById("disk-gauge").getContext("2d"), "disk-gauge");
-        document.getElementById("individualDiskUsage").innerHTML = data.disks.map(disk => `${disk.name}: ${((disk.usage / disk.capacity) * 100).toFixed(2)}%`).join(", <br />");
+        // drawGauge(data.disks[0].usage / data.disks[0].capacity * 100, document.getElementById("disk-gauge").getContext("2d"), "disk-gauge");
+        // document.getElementById("individualDiskUsage").innerHTML = data.disks.map(disk => `${disk.name}: ${((disk.usage / disk.capacity) * 100).toFixed(2)}%`).join(", <br />");
     } catch (error) {
         alert(`Unable to find agent at ${ip}:8080/metrics. Ensure agent script is running.`);
         throw new Error("Unable to fetch metrics!", error);
