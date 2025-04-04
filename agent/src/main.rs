@@ -1,9 +1,10 @@
-use axum::{routing::get,Router,Json,http::Method, extract::Query, http::StatusCode};
+use axum::{routing::get, Router, Json, http::Method, extract::Query, http::StatusCode};
 use tower_http::cors::{CorsLayer, Any};
 use serde::{Serialize, Deserialize};
 use sysinfo::{Disks, System, Components};
 use std::net::SocketAddr;
 use std::env;
+use axum_server::tls_rustls::RustlsConfig;
 
 #[derive(Serialize)]
 struct TemperatureComponent {
@@ -22,12 +23,12 @@ struct Disk {
 
 #[derive(Serialize)]
 struct Metrics {
-    total_cpu_usage: f32, // CPU usage percentage averages across all cores
-    individual_cpu_usage: Vec<f32>, // CPU usage percentage for each core
-    memory_usage: u64, // Memory usage in bytes (raw data)
-    memory_total: u64, // Total memory in bytes (raw data)
-    cpu_temperature: u64, // Temperature without formatting (25)
-    individual_temperatures: Vec<TemperatureComponent>, // Temperature for each component
+    total_cpu_usage: f32,
+    individual_cpu_usage: Vec<f32>,
+    memory_usage: u64,
+    memory_total: u64,
+    cpu_temperature: u64,
+    individual_temperatures: Vec<TemperatureComponent>,
     disks: Vec<Disk>,
 }
 
@@ -45,8 +46,8 @@ async fn get_metrics(query: Query<AuthQuery>) -> Result<Json<Metrics>, StatusCod
 
     let mut sys = System::new_all();
     sys.refresh_all();
-    std::thread::sleep(std::time::Duration::from_millis(1000)); // Wait for a second
-    sys.refresh_all(); // Second refresh to get actual usage
+    std::thread::sleep(std::time::Duration::from_millis(1000));
+    sys.refresh_all();
 
     Ok(Json(Metrics {
         total_cpu_usage: get_total_cpu_usage(&sys),
@@ -83,7 +84,7 @@ fn get_temperature() -> u64 {
     if components.is_empty() {
         return 0;
     }
-    return components[0].temperature().unwrap_or(0.0) as u64;
+    components[0].temperature().unwrap_or(0.0) as u64
 }
 
 fn get_individual_temperatures() -> Vec<TemperatureComponent> {
@@ -111,19 +112,28 @@ fn get_disks() -> Vec<Disk> {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app = Router::new()
         .route("/metrics", get(get_metrics))
         .layer(
             CorsLayer::new()
-                .allow_methods([Method::GET]) // Allow GET requests
-                .allow_origin(Any), // Allow requests from any origin
+                .allow_methods([Method::GET])
+                .allow_origin(Any),
         );
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 49160));
-    println!("Agent running at http://{}", addr);
-    axum::Server::bind(&addr)
+
+    // Load TLS certificate and key from files
+    let tls_config = RustlsConfig::from_pem_file(
+        "serverwatch.crt",
+        "serverwatch.key",
+    )
+    .await?;
+
+    println!("Agent running at https://{}", addr);
+    axum_server::bind_rustls(addr, tls_config)
         .serve(app.into_make_service())
-        .await
-        .unwrap();
+        .await?;
+
+    Ok(())
 }
