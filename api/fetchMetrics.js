@@ -3,7 +3,7 @@ export async function fetchMetrics(ip, password, demoMode = false) {
     if (demoMode) return generateDemoData();
 
     try {
-        const response = await fetch(`http://${ip}:49160/metrics?password=${encodeURIComponent(password)}`, {
+        const response = await fetch(`https://${ip}:49160/metrics?password=${encodeURIComponent(password)}`, {
             timeout: 5000 // Prevents hanging
         });
 

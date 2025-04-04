@@ -2,3 +2,5 @@ agent/output.log
 agent/src/output.log
 agent/target/
 .DS_Store
+agent/serverwatch.crt
+agent/serverwatch.key
