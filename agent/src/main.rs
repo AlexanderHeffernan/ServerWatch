@@ -120,7 +120,7 @@ async fn main() {
                 .allow_origin(Any), // Allow requests from any origin
         );
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 49160));
     println!("Agent running at http://{}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())

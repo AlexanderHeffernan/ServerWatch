@@ -9,12 +9,12 @@ export async function fetchMetrics(ip, password, demoMode = false) {
 
         if (!response.ok) {
             if (response.status === 401) throw new Error("Unauthorized: Incorrect password.");
-            if (response.status === 404) throw new Error(`Agent not found at ${ip}:8080/metrics. Ensure agent script is running.`);
+            if (response.status === 404) throw new Error(`Agent not found at ${ip}:49160/metrics. Ensure agent script is running.`);
             throw new Error(`HTTP error: ${response.status} - ${response.statusText}`);
         }
         return await response.json();
     } catch (error) {
-        if (error.name === "TypeError") throw new Error(`Network error: Unable to connect to ${ip}:8080. Check network or agent status.`);
+        if (error.name === "TypeError") throw new Error(`Network error: Unable to connect to ${ip}:49160. Check network or agent status.`);
         throw error;
     }
 }
