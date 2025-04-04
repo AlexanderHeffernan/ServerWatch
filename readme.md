@@ -18,10 +18,12 @@ ServerWatch was originally built for my **Raspberry Pi** to monitor my server's 
 The frontend is already deployed via GitHub Pages at https://alexanderheffernan.github.io/ServerWatch/. You are also able to run it locally via a simple http web server.
 ### 2. Set Up the Agent Script
 To install and run the Rust-based agent on your server:
-    git clone https://github.com/alexanderheffernan/ServerWatch.git
-    cd your-repo/agent
-    cargo build --release
-    ./target/release/agent
+```
+git clone https://github.com/alexanderheffernan/ServerWatch.git
+cd your-repo/agent
+cargo build --release
+./target/release/rrpm-agent
+```
 This will start the monitoring service on the server.
 ## Usage
 1. Open the frontend in a browser.
