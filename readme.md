@@ -1,39 +1,65 @@
 # ServerWatch
+> [!WARNING]
+> The `ServerWatch-Agent` has only been tested on Raspberry Pi OS. It uses cross-platform Rust modules to gather system metrics, but compatibility on other systems is not guaranteed—use at your own risk.
 ## Overview
-ServerWatch is a simple tool that makes it easy to view your key server metrics, such as CPU and RAM usage. Whether you are on-site or remote, easily check out your servers metrics by simply entering your servers IP address and a password. The tool consists of:
-- **Frontend**: A static web-based dashboard that displays key server metrics, accessible either through this repositories GitHub Pages deployment, or via your own personal local setup.
-- **Agent Script**: A Rust-based background process which runs on the server. When fetched for, it will return the system metrics to the frontend for display.
-- **Connection**: The frontend connects the remote server via an IP address, with a password setup on the server for authorised access.
-- **Easy Setup**: Using the install.sh and uninstall.sh scripts, you can easily add and remove the agent script from your server. The install.sh script will ensure the agent is run in the background on start-up. The uninstall.sh script will remove all files and background processes.
+ServerWatch is a lightweight tool designed to monitor key server metrics like CPU, RAM, and disk usage, whether you're on-site or remote. Simply enter your server's IP address and password to access a clean, web-based dashboard. The tool consists of:
+- **Frontend**: A static web dashboard displaying server metrics, hosted on GitHub Pages or deployable locally.
+- **Agent Script**: A Rust-based background process running on your server, delivering system metrics securely over HTTPS.
+- **Easy Setup**: Install and uninstall scripts (`install.sh` and `uninstall.sh`) streamline deployment and removal, with automatic background service configuration.
 ## Backstory
-ServerWatch was originally built for my **Raspberry Pi** to monitor my server's performance remotely. Since the Raspberry Pi is the only server-type device I have tested it on, it is the only confirmed supported device at this time. However, it may work on other systems as well, as the agent script uses a cross-platform module to collect the metrics.
+I created ServerWatch after setting up a Raspberry Pi 5 as a personal project server. I needed a simple way to check its performance remotely—CPU load, temperatures, etc.—and built this tool to fill that gap.
 ## Features
-- CPU and RAM usage tracking.
-- Secure connection via IP and password.
-- Rust-based efficient agent script.
-- Simple, static frontend deployed via GitHub Pages.
-- Open-source and easy to use.
+- Metrics: CPU usage, RAM usage, disk usage, CPU/component temperatures.
+- Secure access via IP address and password over HTTPS.
+- Efficient Rust-based agent with minimal resource usage.
+- Static frontend hosted on GitHub Pages (`https://alexanderheffernan.github.io/ServerWatch/`).
+- Open-source, with one-command install/uninstall scripts.
 
 ## Installation
 ### 1. Deploy the Frontend
-The frontend is already deployed via GitHub Pages at https://alexanderheffernan.github.io/ServerWatch/. You are also able to run it locally via a simple http web server.
-### 2. Set Up the Agent Script
-To install and run the Rust-based agent on your server:
+The frontend is pre-deployed at [https://alexanderheffernan.github.io/ServerWatch/](https://alexanderheffernan.github.io/ServerWatch/). To run it locally:
+
+```bash
+# Ensure Node.js is installed
+node -v  # Install if missing: sudo apt install nodejs npm
+
+# Install http-server globally
+npm install -g http-server
+
+# Start the server from the frontend directory
+cd /path/to/ServerWatch/frontend
+http-server -p 8080
 ```
-git clone https://github.com/alexanderheffernan/ServerWatch.git
-cd your-repo/agent
-cargo build --release
-./target/release/rrpm-agent
+### 2. Install the Agent Script
+Run the install.sh script on your server to set up the agent. It:
+- Checks for prerequisites (curl, openssl).
+- Downloads the pre-built ServerWatch-Agent binary (ARM only).
+- Generates a self-signed certificate and key.
+- Configures a systemd service to run the agent on boot.
+**One Command Install**
+```bash
+curl -sSL https://raw.githubusercontent.com/AlexanderHeffernan/ServerWatch/main/install.sh | bash
 ```
-This will start the monitoring service on the server.
+- The agent will run at `https://<your-server-ip>:49160/metrics`.
+### 3. Configure the Agent Password
+The default password is Password123. To set a custom password:
+- Edit the systemd service:
+`sudo nano /etc/systemd/system/serverwatch-agent.service`
+- Add under [Service]:
+`Environment="PASSWORD=YourSecurePassword"`
+- Apply changes:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart serverwatch-agent.service
+```
 ## Usage
-1. Open the frontend in a browser.
-2. Enter the **IP address** and **password** of a server running the agent.
-3. View your metrics.
-## Security Considerations
-- Do not expose the agent script to the internet without a password setup.
-- Store credentials securely using environment variables instead of hardcoding.
-## Contributing
-Contributions are welcome! Feel free to submit issues and pull requests.
-## License
-This project is licensed under the MIT License.
+1. Open the frontend (GitHub Pages or local).
+2. Enter your server’s IP address (e.g., 192.168.68.59) and password.
+3. Click "Connect" to view your metrics.
+- Local Access: Use your LAN IP (e.g., 192.168.68.59).
+- Remote Access: Use your public IP (e.g., 161.29.239.150) with port forwarding set to 49160.
+
+## Uninstall
+To remove the agent:
+`curl -sSL https://raw.githubusercontent.com/AlexanderHeffernan/ServerWatch/main/uninstall.sh | bash`
+This stops the service, deletes files in ~/ServerWatch-agent/, and removes the systemd configuration.
