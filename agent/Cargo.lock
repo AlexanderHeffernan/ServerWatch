@@ -3,6 +3,21 @@
 version = 4
 
 [[package]]
+name = "ServerWatch-Agent"
+version = "0.2.0"
+dependencies = [
+ "axum",
+ "axum-server",
+ "rustls-pemfile",
+ "serde",
+ "serde_json",
+ "sysinfo",
+ "tokio",
+ "tokio-rustls 0.25.0",
+ "tower-http",
+]
+
+[[package]]
 name = "addr2line"
 version = "0.24.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -607,21 +622,6 @@ dependencies = [
  "libc",
  "untrusted",
  "windows-sys",
-]
-
-[[package]]
-name = "rrpm-agent"
-version = "0.1.0"
-dependencies = [
- "axum",
- "axum-server",
- "rustls-pemfile",
- "serde",
- "serde_json",
- "sysinfo",
- "tokio",
- "tokio-rustls 0.25.0",
- "tower-http",
 ]
 
 [[package]]
