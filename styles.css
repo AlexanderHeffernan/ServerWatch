@@ -161,3 +161,19 @@ p {
         padding: 10px;
     }
 }
+
+/* styles.css */
+.error-message {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.error-message a {
+    color: #007bff;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.error-message a:hover {
+    color: #0056b3;
+}

@@ -14,6 +14,16 @@ export async function fetchMetrics(ip, password, demoMode = false) {
         }
         return await response.json();
     } catch (error) {
+        if (error.name === "TypeError") {
+            // Check if it's likely a certificate error
+            if (error.message.includes("certificate") && error.message.includes("invalid")) {
+                throw {
+                    message: "Certificate error: The server's self-signed certificate needs to be accepted.",
+                    isCertError: true,
+                    ip: ip
+                }
+            }
+        }
         if (error.name === "TypeError") throw new Error(`Network error: Unable to connect to ${ip}:49160. Check network or agent status.`);
         throw error;
     }

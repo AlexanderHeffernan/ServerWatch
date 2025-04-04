@@ -12,6 +12,7 @@ const ipInput = document.getElementById("ipAddress");
 const passwordInput = document.getElementById("password");
 const rememberMeCheck = document.getElementById("rememberMe");
 const connectPopup = document.getElementById("connect-popup");
+const certErrorDiv = document.getElementById("certError");
 
 // Initialize from localStorage
 function initialize() {
@@ -19,6 +20,7 @@ function initialize() {
     ipInput.value = ipAddress;
     passwordInput.value = password;
     rememberMeCheck.checked = rememberMe;
+    certErrorDiv.style.display = "none"; // Hide certificate error by default
 }
 
 async function handleFetchMetrics() {
@@ -35,13 +37,18 @@ async function handleFetchMetrics() {
     currentPassword = password;
 
     try {
+        certErrrorDiv.style.display = "none"; // Hide certificate error
         const data = await fetchMetrics(ip, password, demoMode);
-        console.log("Data: ", data);
         updateUI(data);
         saveCredentials(ip, password, rememberMeCheck.checked);
         connectPopup.classList.add("hidden");
     } catch (error) {
-        alert(`Failed to fetch metrics: ${error.message}`);
+        if (error.isCertError) {
+            certErrorDiv.innerHTML = `Certificate error: <a href="https://${ip}:49160/metrics" target="_blank">Click here</a> to accept the self-signed certificate, then try again.`;
+            certErrorDiv.style.display = "block";
+        } else {
+            alert(`Failed to fetch metrics: ${error.message}`);
+        }
     }
 }
 
