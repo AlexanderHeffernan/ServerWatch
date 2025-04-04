@@ -1,9 +1,10 @@
 # ServerWatch
 ## Overview
-ServerWatch is a **server monitoring tool** designed to display key server metrics, such as CPU and RAM usage. The tool consists of:
-- **Frontend**: A static web page that displays server analytics.
-- **Agent Script**: A Rust-based background process running on the server to collect data.
-- **Connection**: The frontend connects to remote servers via IP address and password to fetch system metrics.
+ServerWatch is a simple tool that makes it easy to view your key server metrics, such as CPU and RAM usage. Whether you are on-site or remote, easily check out your servers metrics by simply entering your servers IP address and a password. The tool consists of:
+- **Frontend**: A static web-based dashboard that displays key server metrics, accessible either through this repositories GitHub Pages deployment, or via your own personal local setup.
+- **Agent Script**: A Rust-based background process which runs on the server. When fetched for, it will return the system metrics to the frontend for display.
+- **Connection**: The frontend connects the remote server via an IP address, with a password setup on the server for authorised access.
+- **Easy Setup**: Using the install.sh and uninstall.sh scripts, you can easily add and remove the agent script from your server. The install.sh script will ensure the agent is run in the background on start-up. The uninstall.sh script will remove all files and background processes.
 ## Backstory
 ServerWatch was originally built for my **Raspberry Pi** to monitor my server's performance remotely. Since the Raspberry Pi is the only server-type device I have tested it on, it is the only confirmed supported device at this time. However, it may work on other systems as well, as the agent script uses a cross-platform module to collect the metrics.
 ## Features
