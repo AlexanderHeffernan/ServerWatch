@@ -37,7 +37,7 @@ async function handleFetchMetrics() {
     currentPassword = password;
 
     try {
-        certErrrorDiv.style.display = "none"; // Hide certificate error
+        certErrorDiv.style.display = "none"; // Hide certificate error
         const data = await fetchMetrics(ip, password, demoMode);
         updateUI(data);
         saveCredentials(ip, password, rememberMeCheck.checked);
