@@ -12,7 +12,7 @@ const ipInput = document.getElementById("ipAddress");
 const passwordInput = document.getElementById("password");
 const rememberMeCheck = document.getElementById("rememberMe");
 const connectPopup = document.getElementById("connect-popup");
-const certErrorDiv = document.getElementById("certError");
+const certErrorDiv = document.getElementById("cert-error");
 
 // Initialize from localStorage
 function initialize() {
