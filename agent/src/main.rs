@@ -118,7 +118,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .layer(
             CorsLayer::new()
                 .allow_methods([Method::GET])
-                .allow_origin(Any),
+                .allow_origin(Any)
+                .allow_headers(vec![axum::http::header::CONTENT_TYPE, axum::http::header::HeaderName::from_static("ngrok-skip-browser-warning")]) // Add custom header
         );
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 49160));
