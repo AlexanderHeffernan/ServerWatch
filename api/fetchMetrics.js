@@ -4,9 +4,11 @@ export async function fetchMetrics(ip, password, demoMode = false) {
 
     try {
         const response = await fetch(`https://${ip}/metrics?password=${encodeURIComponent(password)}`, {
-            timeout: 5000 // Prevents hanging
+            timeout: 5000, // Prevents hanging
+            headers: {
+                "ngrok-skip-browser-warning": "true" // Bypass ngrok’s free tier warning
+            }
         });
-
         if (!response.ok) {
             if (response.status === 401) throw new Error("Unauthorized: Incorrect password.");
             if (response.status === 404) throw new Error(`Agent not found at ${ip}:49160/metrics. Ensure agent script is running.`);
