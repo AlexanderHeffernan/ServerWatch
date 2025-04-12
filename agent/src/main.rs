@@ -1,5 +1,5 @@
 use axum::{routing::get, Router, Json, http::Method, extract::Query, http::StatusCode};
-use tower_http::cors::{CorsLayer, Any};
+use tower_http::cors::{CorsLayer, AllowOrigin};
 use serde::{Serialize, Deserialize};
 use sysinfo::{Disks, System, Components};
 use std::net::SocketAddr;
