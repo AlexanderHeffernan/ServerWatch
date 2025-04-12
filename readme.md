@@ -61,5 +61,7 @@ sudo systemctl restart serverwatch-agent.service
 
 ## Uninstall
 To remove the agent:
-`curl -sSL https://raw.githubusercontent.com/AlexanderHeffernan/ServerWatch/main/uninstall.sh | bash`
+```bash
+curl -sSL https://raw.githubusercontent.com/AlexanderHeffernan/ServerWatch/main/uninstall.sh | bash
+```
 This stops the service, deletes files in ~/ServerWatch-agent/, and removes the systemd configuration.
