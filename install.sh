@@ -14,6 +14,14 @@ echo -e "${GREEN}Starting ServerWatch Agent installation...${NC}"
 command -v curl >/dev/null 2>&1 || { echo -e "${RED}curl is required. Please install it (e.g., 'sudo apt install curl').${NC}"; exit 1; }
 command -v openssl >/dev/null 2>&1 || { echo -e "${RED}OpenSSL is required. Please install it (e.g., 'sudo apt install openssl').${NC}"; exit 1; }
 
+# Prompt for password
+echo "Please enter the password for ServerWatch Agent:"
+read -s SERVERWATCH_PASSWORD
+if [ -z "$SERVERWATCH_PASSWORD" ]; then
+    echo -e "${RED}Password cannot be empty. Exiting.${NC}"
+    exit 1
+fi
+
 # Set install directory
 INSTALL_DIR="$HOME/ServerWatch-agent"
 mkdir -p "$INSTALL_DIR"
@@ -46,6 +54,7 @@ After=network.target
 [Service]
 ExecStart=$INSTALL_DIR/ServerWatch-Agent
 WorkingDirectory=$INSTALL_DIR
+Environment="SERVERWATCH_PASSWORD=$SERVERWATCH_PASSWORD"
 Restart=always
 User=$(whoami)
 
