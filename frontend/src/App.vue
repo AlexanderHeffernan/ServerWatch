@@ -1,30 +1,48 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
-  <router-view/>
+    <SideNav />
+    <div class="main-container">
+        <TopBar />
+        <div class="content">
+            <router-view />
+        </div>
+    </div>
 </template>
 
+<script lang="ts" setup>
+import SideNav from './components/SideNav.vue';
+import TopBar from './components/TopBar.vue';
+</script>
+
 <style>
+:root {
+    --primary-color: #C51A4A;
+    --primary-dark-color: #5D1A2A;
+    --primary-light-color: #E0557A;
+    --background-color: #263238;
+    --accent-color: #43A047;
+    --accent-dark-color: #00701A;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
+}
+
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    background-color: #263238;
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
 }
 
-nav {
-  padding: 30px;
-}
-
-nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-nav a.router-link-exact-active {
-  color: #42b983;
+h1 {
+    color: #FFFFFF;
+    font-size: 18px;
 }
 </style>
