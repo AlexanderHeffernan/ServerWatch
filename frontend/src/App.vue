@@ -41,8 +41,27 @@ import TopBar from './components/TopBar.vue';
     overflow: hidden;
 }
 
+.main-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.content {
+    width: 100%;
+    margin: 15px;
+}
+
 h1 {
     color: #FFFFFF;
     font-size: 18px;
+    font-weight: 800;
+}
+
+h2 {
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 600;
 }
 </style>

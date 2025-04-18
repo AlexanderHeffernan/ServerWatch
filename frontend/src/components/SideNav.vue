@@ -59,13 +59,13 @@ function toggleSidebar() {
     background-color: #181E20;
     height: 100%;
     width: 250px;
-    padding: 20px;
+    padding: 15px;
     transition: width 0.4s ease, padding 0.4s ease;
 }
 
 .side-nav.minimized {
-    width: 55px;
-    padding: 20px 10px 20px 10px;
+    width: 60px;
+    padding: 15px 10px 15px 10px;
 }
 
 .header-container {
@@ -119,11 +119,14 @@ function toggleSidebar() {
 
 .nav-link.disabled {
     pointer-events: none;
-    opacity: 0.5;
+    opacity: 0.3;
 }
 
 .nav-link i {
     width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+    flex-grow: 0;
 }
 
 .nav-link span {
