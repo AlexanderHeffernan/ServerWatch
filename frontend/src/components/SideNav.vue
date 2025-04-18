@@ -1,11 +1,11 @@
 <template>
-    <div :class="['side-nav', { minimized }]">
+    <div :class="['side-nav', { minimized, 'mobile-sidebar-minimized': mobileSidebarMinimized }]">
         <div class="header-container">
             <img src="../assets/icon.png" alt="Logo" @click="toggleSidebar" />
             <h1 :class="{ hidden: minimized}">ServerWatch</h1>
             <i 
                 class="fa-solid fa-chevron-left" 
-                :class="{ hidden: minimized}"
+                :class="{ hidden: minimized, 'mobile': !mobileSidebarMinimized}"
                 @click="toggleSidebar">
             </i>
         </div>
@@ -46,13 +46,24 @@
     </div>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, defineEmits, inject } from 'vue';
 
 const minimized = ref(false);
+const mobileSidebarMinimized = inject('mobileSidebarMinimized');
+const emit = defineEmits(['sidebar-toggled']);
 
 function toggleSidebar() {
-    minimized.value = !minimized.value;
+    if (window.innerWidth > 480) {
+        minimized.value = !minimized.value;   
+    }
+    emit('sidebar-toggled');
 }
+
+window.addEventListener('resize', () => {
+    if (window.innerWidth <= 480) {
+        minimized.value = false;
+    }
+});
 </script>
 <style scoped>
 .side-nav {
@@ -93,6 +104,10 @@ function toggleSidebar() {
     font-size: 16px;
     font-weight: 900;
     cursor: pointer;
+}
+
+.header-container i.mobile {
+    margin-left: auto;
 }
 
 .nav-links {
@@ -137,5 +152,24 @@ function toggleSidebar() {
 .nav-link span.hidden {
     opacity: 0;
     visibility: hidden;
+}
+
+@media (max-width: 480px) {
+    .side-nav {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        padding: 15px;
+        z-index: 9999;
+        transition: left 0.4s ease, width 0.4s ease, padding 0.4s ease;
+    }
+    
+    .side-nav.mobile-sidebar-minimized {
+        position: relative;
+        left: -100% !important;
+        width: 0 !important;
+    }
 }
 </style>

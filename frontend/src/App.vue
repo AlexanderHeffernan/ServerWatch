@@ -1,7 +1,7 @@
 <template>
-    <SideNav />
+    <SideNav @sidebar-toggled="handleSidebarToggle" />
     <div class="main-container">
-        <TopBar />
+        <TopBar @mobile-sidebar-toggle="handleMobileSidebarToggle" />
         <div class="content">
             <router-view />
         </div>
@@ -9,8 +9,34 @@
 </template>
 
 <script lang="ts" setup>
+import { ref, provide } from 'vue';
 import SideNav from './components/SideNav.vue';
 import TopBar from './components/TopBar.vue';
+
+const isSidebarMoving = ref(false);
+const mobileSidebarMinimized = ref(true);
+
+function handleSidebarToggle() {
+    if (window.innerWidth <= 480) {
+        mobileSidebarMinimized.value = !mobileSidebarMinimized.value;
+    }
+    isSidebarMoving.value = true;
+    setTimeout(() => {
+        isSidebarMoving.value = false;
+    }, 400);
+}
+
+function handleMobileSidebarToggle() {
+    mobileSidebarMinimized.value = !mobileSidebarMinimized.value;
+    isSidebarMoving.value = true;
+    setTimeout(() => {
+        isSidebarMoving.value = false;
+    }, 400);
+}
+
+provide('isSidebarMoving', isSidebarMoving);
+provide('mobileSidebarMinimized', mobileSidebarMinimized);
+
 </script>
 
 <style>
@@ -19,6 +45,7 @@ import TopBar from './components/TopBar.vue';
     --primary-dark-color: #5D1A2A;
     --primary-light-color: #E0557A;
     --background-color: #263238;
+    --background-light-color: #37474F;
     --accent-color: #43A047;
     --accent-dark-color: #00701A;
 }
@@ -53,6 +80,22 @@ import TopBar from './components/TopBar.vue';
     margin: 15px;
 }
 
+@media (max-width: 480px) {
+    .main-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+    }
+
+    .content {
+        margin: 0;
+        padding: 15px;
+        overflow-y: auto;
+    }
+}
+
 h1 {
     color: #FFFFFF;
     font-size: 18px;
@@ -63,5 +106,15 @@ h2 {
     color: #FFFFFF;
     font-size: 14px;
     font-weight: 600;
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 16px;
+    }
+
+    h2 {
+        font-size: 12px;
+    }
 }
 </style>

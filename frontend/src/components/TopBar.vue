@@ -1,5 +1,6 @@
 <template>
     <div class="top-bar">
+        <i class="mobile-icon fa-solid fa-bars" @click="$emit('mobile-sidebar-toggle')"></i>
         <div class="server-name">
             <h2>Alex's Raspberry Pi</h2>
             <i class="fa-solid fa-chevron-down"></i>
@@ -23,10 +24,32 @@
     align-items: center;
 }
 
+.mobile-icon {
+    display: none;
+}
+@media (max-width: 480px) {
+    .mobile-icon {
+        display: block;
+        color: #FFFFFF;
+        font-size: 20px;
+        cursor: pointer;
+        margin-right: 10px;
+    }
+}
+
 .server-name {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 5px;
+    flex-grow: 1;
+    overflow: hidden;
+    margin-right: 35px;
+}
+
+.server-name h2 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .server-name i {
