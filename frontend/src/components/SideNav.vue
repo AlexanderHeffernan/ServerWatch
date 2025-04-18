@@ -72,6 +72,7 @@ window.addEventListener('resize', () => {
     width: 250px;
     padding: 15px;
     transition: width 0.4s ease, padding 0.4s ease;
+    border-right: 1px solid var(--border-color);
 }
 
 .side-nav.minimized {

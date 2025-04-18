@@ -46,8 +46,12 @@ provide('mobileSidebarMinimized', mobileSidebarMinimized);
     --primary-light-color: #E0557A;
     --background-color: #263238;
     --background-light-color: #37474F;
+    --background-dark-color: #181E20;
+    --accent-light-color: #7fd982;
     --accent-color: #43A047;
     --accent-dark-color: #00701A;
+    --text-color: #FFFFFF;
+    --border-color: #4C5159;
 }
 
 * {
@@ -106,6 +110,12 @@ h2 {
     color: #FFFFFF;
     font-size: 14px;
     font-weight: 600;
+}
+
+p {
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 400;
 }
 
 @media (max-width: 480px) {
