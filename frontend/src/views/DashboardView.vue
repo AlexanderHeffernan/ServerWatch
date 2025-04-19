@@ -1,7 +1,7 @@
 <template>
     <div class="dashboard">
         <div class="widget wide" :class="{ moving: isMoving }">
-
+            <p>{{metrics}}</p>
         </div>
         <div class="widget small" :class="{ moving: isMoving }">
 
@@ -16,6 +16,8 @@
 import { inject } from 'vue';
 
 const isMoving = inject('isSidebarMoving');
+// const serverIp = inject('serverIp');
+// const serverPassword = inject('serverPassword');
 </script>
 
 <style scoped>

@@ -1,4 +1,5 @@
 <template>
+    <ConnectToServer v-if="!serverIp || !serverPassword" @connected="handleConnected" />
     <SideNav @sidebar-toggled="handleSidebarToggle" />
     <div class="main-container">
         <TopBar @mobile-sidebar-toggle="handleMobileSidebarToggle" />
@@ -12,6 +13,18 @@
 import { ref, provide } from 'vue';
 import SideNav from './components/SideNav.vue';
 import TopBar from './components/TopBar.vue';
+import ConnectToServer from './components/ConnectToServer.vue'
+
+const serverIp = ref('');
+const serverPassword = ref('');
+
+function handleConnected(ip: string, password: string) {
+    serverIp.value = ip;
+    serverPassword.value = password;
+}
+
+provide('serverIp', serverIp);
+provide('serverPassword', serverPassword);
 
 const isSidebarMoving = ref(false);
 const mobileSidebarMinimized = ref(true);
