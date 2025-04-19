@@ -2,8 +2,16 @@
     <div class="top-bar">
         <i class="mobile-icon fa-solid fa-bars" @click="$emit('mobile-sidebar-toggle')"></i>
         <div class="server-name">
-            <h2>Alex's Raspberry Pi</h2>
-            <i class="fa-solid fa-chevron-down"></i>
+            <h2 @click="toggleServerDropdown">Alex's Raspberry Pi</h2>
+            <i @click="toggleServerDropdown" class="fa-solid fa-chevron-down" :class="{ 'rotate': isServerDropdownVisible }"></i>
+            <div class="server-dropdown" :class="{ 'show': isServerDropdownVisible }">
+                <p>Server Options</p>
+                <a>Disconnect</a>
+                <a>Add Server</a>
+                <hr />
+                <p>Your Servers</p>
+                <a>Alex's Raspberry Pi</a>
+            </div>
         </div>
         <div class="quick-actions">
             <div class="dropdown">
@@ -24,6 +32,13 @@
     </div>
 </template>
 <script setup lang="ts">
+import { ref } from 'vue';
+
+const isServerDropdownVisible = ref(false);
+
+function toggleServerDropdown() {
+    isServerDropdownVisible.value = !isServerDropdownVisible.value;
+}
 
 </script>
 <style scoped>
@@ -55,14 +70,16 @@
     align-items: center;
     gap: 5px;
     flex-grow: 1;
-    overflow: hidden;
     margin-right: 35px;
+    position: relative;
+    height: 100%;
 }
 
 .server-name h2 {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: pointer;
 }
 
 .server-name i {
@@ -70,6 +87,61 @@
     font-size: 16px;
     font-weight: 900;
     cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.server-name i.rotate {
+    transform: rotate(180deg);
+}
+
+.server-dropdown {
+    max-height: 0;
+    overflow: hidden;
+    position: absolute;
+    top: calc(100% + 1px);
+    left: -16px;
+    background-color: var(--background-dark-color);
+    color: var(--text-color);
+    border-radius: 0 0 13px 13px;
+    white-space: nowrap;
+    transition: max-height 0.2s ease, padding 0.2s ease;
+    border: 0;
+    width: 200px;
+}
+
+.server-dropdown.show {
+    max-height: 200px;
+    padding: 10px 0;
+    border-style: solid;
+    border-color: var(--border-color);
+    border-width: 0 1px 1px 1px;
+}
+
+.server-dropdown hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 10px 0;
+}
+
+.server-dropdown p {
+    margin: 0;
+    padding: 5px 10px;
+}
+
+.server-dropdown a {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.server-dropdown a:hover {
+    color: var(--primary-color);
 }
 
 .quick-actions {
@@ -106,9 +178,6 @@
     background-color: var(--background-dark-color);
     color: var(--text-color);
     border-radius: 0 0 13px 13px;
-    padding: 0px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    z-index: 10;
     white-space: nowrap;
     transition: max-height 0.2s ease, padding 0.2s ease;
     border: 0;
@@ -139,10 +208,10 @@
     padding: 10px 20px;
     cursor: pointer;
     position: relative;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: color 0.3s ease;
 }
 
-.dropdown-menu a::after {
+.dropdown-menu a::after, .server-dropdown a::after {
     content: ''; /* Creates the underline */
     position: absolute;
     bottom: 0; /* Position the underline at the bottom of the link */
@@ -158,7 +227,7 @@
     /* color: #FFFFFF; */
 }
 
-.dropdown-menu a:hover::after {
+.dropdown-menu a:hover::after, .server-dropdown a:hover::after {
     width: 100%; /* Expand the underline to full width */
 }
 

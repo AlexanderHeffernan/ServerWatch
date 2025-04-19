@@ -63,8 +63,11 @@ provide('mobileSidebarMinimized', mobileSidebarMinimized);
 
 #app {
     display: flex;
+    flex-direction: row;
     width: 100vw;
     height: 100vh;
+    padding: 0;
+    margin: 0;
     background-color: #263238;
     position: absolute;
     top: 0;
@@ -73,10 +76,10 @@ provide('mobileSidebarMinimized', mobileSidebarMinimized);
 }
 
 .main-container {
-    width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
 }
 
 .content {
