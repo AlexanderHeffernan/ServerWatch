@@ -146,10 +146,8 @@ function toggleServerDropdown() {
 
 .quick-actions {
     margin-left: auto;
-    margin-right: 10px;
     display: flex;
     align-items: center;
-    gap: 30px;
     height: 100%;
 }
 
@@ -158,6 +156,7 @@ function toggleServerDropdown() {
     font-size: 16px;
     font-weight: 900;
     cursor: pointer;
+    padding: 0 15px;
 }
 
 .dropdown {
@@ -174,7 +173,7 @@ function toggleServerDropdown() {
     overflow: hidden;
     position: absolute;
     top: calc(100% + 1px);
-    right: -25px;
+    right: -15px;
     background-color: var(--background-dark-color);
     color: var(--text-color);
     border-radius: 0 0 13px 13px;
