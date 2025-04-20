@@ -68,6 +68,52 @@ class ServerConnection {
             this._metrics = null;
         }
     }
+
+    public async shutdown() {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // Prevents hanging
+
+            const response = await fetch(`https://${this._address}/shutdown?password=${this._password}`, {
+                method: 'GET',
+                signal: controller.signal,
+                headers: {
+                    "ngrok-skip-browser-warning": "true" // Bypass ngrok’s free tier warning
+                }
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch metrics from server.');
+            }
+        } catch (error) {
+            console.error('Error shutting down server:', error);
+        }
+    }
+
+    public async reboot() {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // Prevents hanging
+
+            const response = await fetch(`https://${this._address}/reboot?password=${this._password}`, {
+                method: 'GET',
+                signal: controller.signal,
+                headers: {
+                    "ngrok-skip-browser-warning": "true" // Bypass ngrok’s free tier warning
+                }
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch metrics from server.');
+            }
+        } catch (error) {
+            console.error('Error rebooting server:', error);
+        }
+    }
 }
 
 export const serverConnection = ref<ServerConnection | null>(ServerConnection.getInstance());

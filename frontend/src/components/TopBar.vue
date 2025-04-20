@@ -25,8 +25,8 @@
             <div class="dropdown">
                 <i class="fa-solid fa-power-off" id="power-icon" style="color: var(--accent-light-color)"></i>
                 <div class="dropdown-menu">
-                    <a>Shutdown</a>
-                    <a>Reboot</a>
+                    <a @click="handleShutdown">Shutdown</a>
+                    <a @click="handleReboot">Reboot</a>
                 </div>
             </div>
         </div>
@@ -44,6 +44,14 @@ function toggleServerDropdown() {
 
 function handleRefresh() {
     serverConnection.value?.refresh();
+}
+
+function handleShutdown() {
+    serverConnection.value?.shutdown();
+}
+
+function handleReboot() {
+    serverConnection.value?.reboot();
 }
 
 </script>
