@@ -37,7 +37,7 @@ class ServerConnection {
         this.fetchMetrics();
     }
     
-    public getMetric(key: string): string | number {
+    public getMetric(key: string): any {
         if (this._metrics && key in this._metrics) {
             return this._metrics[key];
         }
