@@ -16,7 +16,8 @@ fn main() {
     let routes = Routes::new()
         .add_route_with_password("/metrics", get_metrics, password)
         .add_route_with_password("/test-connection", test_connection, password)
-        .add_route_with_password("/shutdown", shutdown, password);
+        .add_route_with_password("/shutdown", shutdown, password)
+        .add_route_with_password("/reboot", reboot, password);
 
     Api::new()
         .certs("serverwatch.crt", "serverwatch.key")
@@ -78,6 +79,29 @@ async fn shutdown() -> HttpResponse {
             }
         }
         Ok(Err(e)) => HttpResponse::InternalServerError().body(format!("Error executing shutdown command: {}", e)),
+        Err(e) => HttpResponse::InternalServerError().body(format!("Blocking task failed: {}", e)),
+    }
+}
+
+async fn reboot() -> HttpResponse {
+    // Run the reboot command in a blocking context
+    let result = web::block(|| {
+        Command::new("sudo")
+            .arg("/usr/sbin/reboot")
+            .output()
+    })
+    .await;
+
+    match result {
+        Ok(Ok(output)) => {
+            if output.status.success() {
+                HttpResponse::Ok().body("Rebooting now...")
+            } else {
+                let error = String::from_utf8_lossy(&output.stderr).to_string();
+                HttpResponse::InternalServerError().body(format!("Failed to reboot: {}", error))
+            }
+        }
+        Ok(Err(e)) => HttpResponse::InternalServerError().body(format!("Error executing reboot command: {}", e)),
         Err(e) => HttpResponse::InternalServerError().body(format!("Blocking task failed: {}", e)),
     }
 }
