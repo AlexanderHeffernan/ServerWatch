@@ -4,3 +4,4 @@ agent/target/
 .DS_Store
 agent/serverwatch.crt
 agent/serverwatch.key
+frontend/node_modules/
