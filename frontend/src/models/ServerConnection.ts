@@ -46,7 +46,19 @@ class ServerConnection {
     
     private async fetchMetrics() {
         try {
-            const response = await fetch(`https://${this._address}/metrics?password=${this._password}`);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // Prevents hanging
+
+            const response = await fetch(`https://${this._address}/metrics?password=${this._password}`, {
+                method: 'GET',
+                signal: controller.signal,
+                headers: {
+                    "ngrok-skip-browser-warning": "true" // Bypass ngrok’s free tier warning
+                }
+            });
+
+            clearTimeout(timeoutId);
+
             if (!response.ok) {
                 throw new Error('Failed to fetch metrics from server.');
             }
