@@ -14,7 +14,8 @@ fn main() {
     );
     
     let routes = Routes::new()
-        .add_route_with_password("/metrics", get_metrics, password);
+        .add_route_with_password("/metrics", get_metrics, password)
+        .add_route_with_password("/test-connection", test_connection, password);
 
     Api::new()
         .certs("serverwatch.crt", "serverwatch.key")
@@ -49,4 +50,8 @@ async fn get_metrics() -> HttpResponse {
         individual_temperatures: get_individual_temperatures(),
         disks: get_disks(),
     })
+}
+
+async fn test_connection() -> HttpResponse {
+    rusty_api::HttpResponse::Ok().body("Connection successful")
 }
