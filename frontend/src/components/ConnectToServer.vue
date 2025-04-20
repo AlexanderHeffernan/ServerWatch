@@ -23,9 +23,8 @@
     </div>
 </template>
 <script setup lang="ts">
-import { ref, defineEmits } from 'vue';
-
-const emit = defineEmits(['connected']);
+import { ref } from 'vue';
+import { initiateServerConnection } from '../models/ServerConnection';
 
 const serverIp = ref('');
 const serverPassword = ref('');
@@ -50,7 +49,7 @@ async function connectToServer() {
         const data = await response.text();
         if (data === 'Connection successful') {
             // Handle successful connection
-            emit('connected', serverIp.value, serverPassword.value);
+            initiateServerConnection(serverIp.value, serverPassword.value);
         } else {
             errorMessage.value = data || 'Connection failed.';
         }

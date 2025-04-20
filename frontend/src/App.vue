@@ -1,5 +1,5 @@
 <template>
-    <ConnectToServer v-if="!serverIp || !serverPassword" @connected="handleConnected" />
+    <ConnectToServer v-if="!serverConnection" />
     <SideNav @sidebar-toggled="handleSidebarToggle" />
     <div class="main-container">
         <TopBar @mobile-sidebar-toggle="handleMobileSidebarToggle" />
@@ -14,17 +14,8 @@ import { ref, provide } from 'vue';
 import SideNav from './components/SideNav.vue';
 import TopBar from './components/TopBar.vue';
 import ConnectToServer from './components/ConnectToServer.vue'
-
-const serverIp = ref('');
-const serverPassword = ref('');
-
-function handleConnected(ip: string, password: string) {
-    serverIp.value = ip;
-    serverPassword.value = password;
-}
-
-provide('serverIp', serverIp);
-provide('serverPassword', serverPassword);
+import { serverConnection } from './models/ServerConnection';
+// import ServerConnection from './models/ServerConnection';
 
 const isSidebarMoving = ref(false);
 const mobileSidebarMinimized = ref(true);
@@ -59,6 +50,7 @@ provide('mobileSidebarMinimized', mobileSidebarMinimized);
     --primary-light-color: #E0557A;
     --background-color: #263238;
     --background-light-color: #37474F;
+    --background-lighter-color: #546E7A;
     --background-dark-color: #181E20;
     --accent-light-color: #7fd982;
     --accent-color: #43A047;
