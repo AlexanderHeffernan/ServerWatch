@@ -36,7 +36,19 @@
             <p class="main-metric">Used: {{ memoryUsage }}GB / Total: {{ memoryTotal }}GB</p>
         </div>
         <div class="widget small" :class="{ moving: isMoving }">
-
+            <div class="widget-header">
+                <i class="fa-solid fa-hard-drive"></i>
+                <h2>Disk Usage</h2>
+            </div>
+            <div v-for="(disk, index) in diskUsage" :key="index" class="disk-info">
+                <div class="progress-bar">
+                    <div
+                        class="progress"
+                        :style="{ width: `${(disk.used / disk.total) * 100}%` }"
+                    ></div>
+                </div>
+                <p class="main-metric">{{ disk.label }} Used: {{ disk.used }}GB / Total: {{ disk.total }}GB</p>
+            </div>
         </div>
     </div>
 </template>
@@ -70,6 +82,20 @@ const memoryUsage = computed(() => {
 const memoryTotal = computed(() => {
     const total = serverConnection.value?.getMetric('memory_total');
     return total ? convertBytesToGB(Number(total)) : 0;
+});
+
+const diskUsage = computed(() => {
+    const disks = serverConnection.value?.getMetric('disks');
+
+    if (Array.isArray(disks)) {
+        return disks.map((disk: { label: string; total: number; used: number }) => ({
+            label: disk.label,
+            total: convertBytesToGB(disk.total),
+            used: convertBytesToGB(disk.used),
+        }));
+    }
+
+    return [];
 });
 
 function convertBytesToGB(bytes: number): number {
