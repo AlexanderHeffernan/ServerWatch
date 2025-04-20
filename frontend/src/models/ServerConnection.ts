@@ -32,6 +32,10 @@ class ServerConnection {
 
     public get address(): string { return this._address; }
     public get password(): string { return this._password; }
+
+    public refresh(): void {
+        this.fetchMetrics();
+    }
     
     public getMetric(key: string): string | number {
         if (this._metrics && key in this._metrics) {

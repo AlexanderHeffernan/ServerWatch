@@ -14,6 +14,7 @@
             </div>
         </div>
         <div class="quick-actions">
+            <i @click="handleRefresh" class="fa-solid fa-arrows-rotate" id="refresh-icon"></i>
             <div class="dropdown">
                 <i class="fa-solid fa-bell" id="notification-icon"></i>
                 <div class="dropdown-menu">
@@ -33,11 +34,16 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue';
+import { serverConnection } from '../models/ServerConnection';
 
 const isServerDropdownVisible = ref(false);
 
 function toggleServerDropdown() {
     isServerDropdownVisible.value = !isServerDropdownVisible.value;
+}
+
+function handleRefresh() {
+    serverConnection.value?.refresh();
 }
 
 </script>
@@ -201,6 +207,10 @@ function toggleServerDropdown() {
     animation: rotate-shake 0.5s ease;
 }
 
+i#refresh-icon:hover {
+    animation: rotate-spin 0.5s ease;
+}
+
 .dropdown-menu a {
     display: block;
     margin: 0;
@@ -236,6 +246,11 @@ function toggleServerDropdown() {
     50% { transform: rotate(10deg); }
     75% { transform: rotate(-10deg); }
     100% { transform: rotate(0); }
+}
+
+@keyframes rotate-spin {
+    0% { transform: rotate(0); }
+    100% { transform: rotate(360deg); }
 }
 
 .dropdown-menu p {
