@@ -5,3 +5,4 @@ agent/target/
 agent/serverwatch.crt
 agent/serverwatch.key
 frontend/node_modules/
+dist/
