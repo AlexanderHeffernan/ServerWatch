@@ -118,6 +118,12 @@ function convertBytesToGB(bytes: number): number {
 @media (max-width: 768px) {
     .widget {
         width: 100% !important;
+    }
+}
+
+@media (max-width: 440px) {
+    .widget {
+        width: 100% !important;
         height: auto !important;
         align-items: center;
     }

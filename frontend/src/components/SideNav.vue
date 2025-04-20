@@ -155,7 +155,7 @@ window.addEventListener('resize', () => {
     visibility: hidden;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 540px) {
     .side-nav {
         position: absolute;
         top: 0;

@@ -89,22 +89,18 @@ provide('mobileSidebarMinimized', mobileSidebarMinimized);
 
 .content {
     width: 100%;
-    margin: 15px;
+    margin: 0;
+    padding: 15px;
+    overflow-y: auto;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 540px) {
     .main-container {
         position: absolute;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-    }
-
-    .content {
-        margin: 0;
-        padding: 15px;
-        overflow-y: auto;
     }
 }
 
@@ -126,7 +122,7 @@ p {
     font-weight: 400;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 540px) {
     h1 {
         font-size: 16px;
     }

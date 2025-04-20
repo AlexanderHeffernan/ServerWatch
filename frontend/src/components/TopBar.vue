@@ -61,13 +61,22 @@ function handleRefresh() {
 .mobile-icon {
     display: none;
 }
-@media (max-width: 480px) {
+@media (max-width: 540px) {
     .mobile-icon {
         display: block;
         color: #FFFFFF;
         font-size: 20px;
         cursor: pointer;
         margin-right: 10px;
+    }
+
+    .server-name {
+        margin-right: 0 !important;
+        max-width: 40%;
+    }
+
+    .quick-actions i {
+        padding: 0 10px !important;
     }
 }
 
