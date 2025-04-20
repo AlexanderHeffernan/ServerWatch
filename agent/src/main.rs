@@ -2,8 +2,8 @@ mod models;
 mod getters;
 
 use rusty_api::{Api, Routes, Cors, HttpResponse};
-use actix_web::http;
-use std::env;
+use actix_web::{web, http};
+use std::{env, process::Command};
 
 fn main() {
     // Check if the SERVERWATCH_PASSWORD environment variable is set
@@ -15,7 +15,8 @@ fn main() {
     
     let routes = Routes::new()
         .add_route_with_password("/metrics", get_metrics, password)
-        .add_route_with_password("/test-connection", test_connection, password);
+        .add_route_with_password("/test-connection", test_connection, password)
+        .add_route_with_password("/shutdown", shutdown, password);
 
     Api::new()
         .certs("serverwatch.crt", "serverwatch.key")
@@ -41,7 +42,7 @@ async fn get_metrics() -> HttpResponse {
     std::thread::sleep(std::time::Duration::from_millis(1000));
     sys.refresh_all();
 
-    rusty_api::HttpResponse::Ok().json(Metrics {
+    HttpResponse::Ok().json(Metrics {
         total_cpu_usage: get_total_cpu_usage(&sys),
         individual_cpu_usage: get_individual_cpu_usage(&sys),
         memory_usage: sys.used_memory(),
@@ -53,5 +54,30 @@ async fn get_metrics() -> HttpResponse {
 }
 
 async fn test_connection() -> HttpResponse {
-    rusty_api::HttpResponse::Ok().body("Connection successful")
+    HttpResponse::Ok().body("Connection successful")
+}
+
+async fn shutdown() -> HttpResponse {
+    // Run the shutdown command in a blocking context
+    let result = web::block(|| {
+        Command::new("sudo")
+            .arg("shutdown")
+            .arg("-h")
+            .arg("now")
+            .output()
+    })
+    .await;
+
+    match result {
+        Ok(Ok(output)) => {
+            if output.status.success() {
+                HttpResponse::Ok().body("Shutting down now...")
+            } else {
+                let error = String::from_utf8_lossy(&output.stderr).to_string();
+                HttpResponse::InternalServerError().body(format!("Failed to shut down: {}", error))
+            }
+        }
+        Ok(Err(e)) => HttpResponse::InternalServerError().body(format!("Error executing shutdown command: {}", e)),
+        Err(e) => HttpResponse::InternalServerError().body(format!("Blocking task failed: {}", e)),
+    }
 }
