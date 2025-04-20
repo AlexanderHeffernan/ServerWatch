@@ -60,8 +60,7 @@ async fn test_connection() -> HttpResponse {
 async fn shutdown() -> HttpResponse {
     // Run the shutdown command in a blocking context
     let result = web::block(|| {
-        Command::new("")
-            .arg("/usr/sbin/shutdown")
+        Command::new("/usr/sbin/shutdown")
             .arg("-h")
             .arg("now")
             .output()
