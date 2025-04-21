@@ -1,5 +1,8 @@
 mod models;
 mod getters;
+mod push_notifications;
+
+use push_notifications::send_alertzy_notification;
 
 use rusty_api::{Api, Routes, Cors, HttpResponse};
 use actix_web::{web, http};
@@ -22,7 +25,7 @@ fn main() {
     Api::new()
         .certs("serverwatch.crt", "serverwatch.key")
         .rate_limit(1, 1)
-        .bind("0.0.0.0", 49160)
+        .bind("0.0.0.0", 49161)
         .configure_routes(routes)
         .configure_cors(|| {
             Cors::default()
@@ -59,6 +62,16 @@ async fn test_connection() -> HttpResponse {
 }
 
 async fn shutdown() -> HttpResponse {
+    // Send a notification before shutting down
+    if let Err(e) = send_alertzy_notification(
+        "Server Shutdown Initiated",
+        "The server is shutting down now. If you do you receive a follow-up error alert, then shutdown was successful.",
+        2
+    ).await { 
+        eprintln!("Failed to send shutdown notification: {}", e); 
+        return HttpResponse::InternalServerError().body(format!("Failed to send shutdown notification: {}", e));
+    }
+
     // Run the shutdown command in a blocking context
     let result = web::block(|| {
         Command::new("sudo")
@@ -84,6 +97,16 @@ async fn shutdown() -> HttpResponse {
 }
 
 async fn reboot() -> HttpResponse {
+    // Send a notification before rebooting
+    if let Err(e) = send_alertzy_notification(
+        "Server Reboot Initiated",
+        "The server is rebooting now. If you do you receive a follow-up error alert, then reboot was successful.",
+        2
+    ).await { 
+        eprintln!("Failed to send reboot notification: {}", e); 
+        return HttpResponse::InternalServerError().body(format!("Failed to send reboot notification: {}", e));
+    }
+
     // Run the reboot command in a blocking context
     let result = web::block(|| {
         Command::new("sudo")
