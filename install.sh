@@ -22,6 +22,14 @@ if [ -z "$SERVERWATCH_PASSWORD" ]; then
     exit 1
 fi
 
+# Prompt for alertzy account key
+echo "Please enter your Alertzy account key:"
+read -s SERVERWATCH_ALERTZY_KEY
+if [ -z "$SERVERWATCH_ALERTZY_KEY" ]; then
+    echo -e "${RED}Alertzy account key cannot be empty. Exiting.${NC}"
+    exit 1
+fi
+
 # Set install directory
 INSTALL_DIR="$HOME/ServerWatch-agent"
 mkdir -p "$INSTALL_DIR"
@@ -55,6 +63,7 @@ After=network.target
 ExecStart=$INSTALL_DIR/ServerWatch-Agent
 WorkingDirectory=$INSTALL_DIR
 Environment="SERVERWATCH_PASSWORD=$SERVERWATCH_PASSWORD"
+Environment="SERVERWATCH_ALERTZY_KEY=$SERVERWATCH_ALERTZY_KEY"
 Restart=always
 User=$(whoami)
 
