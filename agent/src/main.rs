@@ -25,7 +25,7 @@ fn main() {
     Api::new()
         .certs("serverwatch.crt", "serverwatch.key")
         .rate_limit(1, 1)
-        .bind("0.0.0.0", 49161)
+        .bind("0.0.0.0", 49160)
         .configure_routes(routes)
         .configure_cors(|| {
             Cors::default()
