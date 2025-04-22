@@ -5,6 +5,7 @@ class ServerConnection {
     private _address: string;
     private _password: string;
     private _metrics: any = null;
+    private _demoMode = false;
 
     private constructor(address: string, password: string) {
         if (!address) { throw new Error('Address is required to establish a server connection.'); }
@@ -23,6 +24,17 @@ class ServerConnection {
         }
     }
 
+    public static initiateDemoConnection(): ServerConnection {
+        if (!ServerConnection.instance) {
+            ServerConnection.instance = new ServerConnection('demo', 'demo');
+            ServerConnection.instance._demoMode = true;
+            ServerConnection.instance.fetchMetrics();
+            return ServerConnection.instance;
+        } else {
+            throw new Error('Demo connection already established. Use getInstance() to access the existing connection.');
+        }
+    }
+
     public static getInstance(): ServerConnection | null {
         if (!ServerConnection.instance) {
             return null;
@@ -32,6 +44,7 @@ class ServerConnection {
 
     public get address(): string { return this._address; }
     public get password(): string { return this._password; }
+    public get demoMode(): boolean { return this._demoMode; }
 
     public refresh(): void {
         this.fetchMetrics();
@@ -45,6 +58,34 @@ class ServerConnection {
     }
     
     private async fetchMetrics() {
+        if (this._demoMode) {
+            const randomBytes = () => Math.floor(Math.random() * 1e12); // Generate a random number of bytes
+            const randomMemoryTotal = randomBytes() / 75; // Generate a random number of bytes
+            const randomDisk1Total = randomBytes(); // Generate a random number of bytes
+            const randomDisk2Total = randomBytes(); // Generate a random number of bytes
+            this._metrics = {
+                "total_cpu_usage": Math.floor(Math.random() * 100),
+                "individual_cpu_usage": Array.from({ length: 4 }, () => Math.floor(Math.random() * 100)),
+                "memory_usage": randomMemoryTotal / Math.floor(Math.random() * 100),
+                "memory_total": randomMemoryTotal,
+                "cpu_temperature": Math.floor(Math.random() * 100),
+                "individual_temperatures": Array.from({ length: 4 }, () => Math.floor(Math.random() * 100)),
+                "disks": [
+                    {
+                        "label": "Disk 1",
+                        "total": randomDisk1Total,
+                        "used": randomDisk1Total / Math.floor(Math.random() * 100)
+                    },
+                    {
+                        "label": "Disk 2",
+                        "total": randomDisk2Total,
+                        "used": randomDisk2Total / Math.floor(Math.random() * 100)
+                    }
+                ]
+            };
+            return;
+        }
+
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000); // Prevents hanging
@@ -125,3 +166,12 @@ export const initiateServerConnection = async (address: string, password: string
         serverConnection.value = null;
     }
 };
+
+export function initiateDemoConnection(): void {
+    try {
+        serverConnection.value = ServerConnection.initiateDemoConnection();
+    } catch (error) {
+        console.error('Error establishing demo connection:', error);
+        serverConnection.value = null;
+    }
+}

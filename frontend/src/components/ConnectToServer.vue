@@ -18,13 +18,14 @@
             <input type="checkbox" value="rememberMeValue" id="rememberMe"> <label for="rememberMe">Remember me</label><br /><br />
 
             <button class="submit" @click="connectToServer">Connect</button>
+            <button class="secondary-submit" @click="demoMode">Demo Mode</button>
             <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
         </div>
     </div>
 </template>
 <script setup lang="ts">
 import { ref } from 'vue';
-import { initiateServerConnection } from '../models/ServerConnection';
+import { initiateServerConnection, initiateDemoConnection } from '../models/ServerConnection';
 
 const serverIp = ref('');
 const serverPassword = ref('');
@@ -65,6 +66,10 @@ async function connectToServer() {
     } catch (error) {
         errorMessage.value = (error as Error).message || 'An error occurred.';
     }
+}
+
+function demoMode() {
+    initiateDemoConnection();
 }
 
 </script>
@@ -154,5 +159,28 @@ async function connectToServer() {
     font-size: 16px;
     cursor: pointer;
     transition: background 0.3s ease;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.connect-content .submit:hover {
+    background: var(--primary-dark-color);
+}
+
+.connect-content .secondary-submit {
+    width: 100%;
+    padding: 10px;
+    color: var(--primary-color);
+    background: rgba(0,0,0,0);
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.connect-content .secondary-submit:hover {
+    color: var(--primary-dark-color);
 }
 </style>
