@@ -111,6 +111,7 @@ class ServerConnection {
     }
 
     public async shutdown() {
+        if (this._demoMode) return;
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000); // Prevents hanging
@@ -134,6 +135,7 @@ class ServerConnection {
     }
 
     public async reboot() {
+        if (this._demoMode) return;
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000); // Prevents hanging
