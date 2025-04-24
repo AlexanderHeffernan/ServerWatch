@@ -1,14 +1,22 @@
 mod models;
 mod getters;
 mod push_notifications;
+mod temperature_monitor;
 
 use push_notifications::send_alertzy_notification;
-
 use rusty_api::{Api, Routes, Cors, HttpResponse};
 use actix_web::{web, http};
 use std::{env, process::Command};
 
 fn main() {
+    // Spawn a background task to monitor temperature
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    rt.block_on(async {
+        tokio::spawn(async {
+            temperature_monitor::monitor_temperature().await;
+        });
+    });
+    
     // Check if the SERVERWATCH_PASSWORD environment variable is set
     let password: &'static str = Box::leak(
         env::var("SERVERWATCH_PASSWORD")
@@ -61,7 +69,7 @@ async fn test_connection() -> HttpResponse {
     HttpResponse::Ok().body("Connection successful")
 }
 
-async fn shutdown() -> HttpResponse {
+pub async fn shutdown() -> HttpResponse {
     // Send a notification before shutting down
     if let Err(e) = send_alertzy_notification(
         "Server Shutdown Initiated",
