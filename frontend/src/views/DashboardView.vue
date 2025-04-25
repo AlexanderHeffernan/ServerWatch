@@ -21,7 +21,7 @@
                     <div class="figure-metric">
                         <p class="figure"><i class="fa-solid fa-temperature-three-quarters"></i> {{ cpuTemperature }}°C</p>
                     </div>
-                    <a style="margin-left: auto; margin-right: auto;">CPU Temperature Settings</a>
+                    <router-link to="/settings#cpu-alerts" style="margin-left: auto; margin-right: auto;">CPU Temperature Alerts & Actions</router-link>
                 </div>
             </div>
         </div>
@@ -56,6 +56,7 @@
 <script setup lang="ts">
 import { inject, computed } from 'vue';
 import { serverConnection } from '../models/ServerConnection';
+import { useRouter } from 'vue-router';
 
 const isMoving = inject('isSidebarMoving');
 

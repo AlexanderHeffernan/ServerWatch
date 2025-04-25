@@ -1,5 +1,5 @@
 <template>
-    <h2>CPU Temperature Alerts & Actions</h2>
+    <h2 id="cpu-alerts">CPU Temperature Alerts & Actions</h2>
     <form>
         <!-- Warning Notifications-->
         <div class="form-group">

@@ -19,7 +19,7 @@
                 <i class="fa-solid fa-bell" id="notification-icon"></i>
                 <div class="dropdown-menu">
                     <p>No new notifications</p>
-                    <a>Notification Settings</a>
+                    <router-link to="/settings#cpu-alerts">Notification Settings</router-link>
                 </div>
             </div>
             <div class="dropdown">
@@ -228,13 +228,15 @@ i#refresh-icon:hover {
     animation: rotate-spin 0.5s ease;
 }
 
-.dropdown-menu a {
+.dropdown-menu a, .dropdown-menu a:visited {
     display: block;
     margin: 0;
     padding: 10px 20px;
     cursor: pointer;
     position: relative;
     transition: color 0.3s ease;
+    text-decoration: none;;
+    color: var(--text-color)
 }
 
 .dropdown-menu a::after, .server-dropdown a::after {
