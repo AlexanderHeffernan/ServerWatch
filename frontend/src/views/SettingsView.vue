@@ -32,16 +32,45 @@
             <label for="shutdownTemp">Set Shutdown Temperature (°C)</label><br />
             <input v-model="shutdownTemp" type="number" min="40" max="150">
         </div>
+        <button @click.prevent="updateTempConfig">Save Settings</button>
     </form>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch, computed } from 'vue';
+import { serverConnection } from '../models/ServerConnection';
 
 const warningEnabled = ref(false);
 const warningTemp = ref(70);
 const shutdownEnabled = ref(false);
 const shutdownTemp = ref(80);
+
+function updateTempConfig() {
+    const connection = serverConnection.value;
+    if (connection) { connection.setTempConfig(warningTemp.value, shutdownTemp.value, warningEnabled.value, shutdownEnabled.value); }
+}
+
+const tempConfig = computed(() => {
+    const connection = serverConnection.value;
+    if (connection) {
+        return {
+            warningTemp: connection.getTempConfig("warning_temp"),
+            shutdownTemp: connection.getTempConfig("shutdown_temp"),
+            warningsEnabled: connection.getTempConfig("warnings_enabled"),
+            shutdownsEnabled: connection.getTempConfig("shutdown_enabled")
+        };
+    }
+    return null;
+});
+
+watch(tempConfig, (newConfig) => {
+    if (newConfig) {
+        warningTemp.value = newConfig.warningTemp;
+        shutdownTemp.value = newConfig.shutdownTemp;
+        warningEnabled.value = newConfig.warningsEnabled;
+        shutdownEnabled.value = newConfig.shutdownsEnabled;
+    }
+}, { immediate: true });
 </script>
 
 <style scoped>
@@ -88,7 +117,7 @@ h2 {
 
 .sub-group {
     margin-left: 20px;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -115,6 +144,20 @@ input[type="number"] {
 div.disabled {
     opacity: 0.3;
     pointer-events: none;
+}
+
+button {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+button:hover {
+    background-color: var(--primary-dark-color);
 }
 
 </style>

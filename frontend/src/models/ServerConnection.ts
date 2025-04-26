@@ -5,6 +5,7 @@ class ServerConnection {
     private _address: string;
     private _password: string;
     private _metrics: any = null;
+    private _tempConfig: any = null;
     private _demoMode = false;
 
     private constructor(address: string, password: string) {
@@ -17,7 +18,8 @@ class ServerConnection {
     public static async initiateConnection(address: string, password: string): Promise<ServerConnection> {
         if (!ServerConnection.instance) {
             ServerConnection.instance = new ServerConnection(address, password);
-            await ServerConnection.instance.fetchMetrics();
+            // await ServerConnection.instance.fetchMetrics();
+            await ServerConnection.instance.fetchTempConfig();
             return ServerConnection.instance;
         } else {
             throw new Error('Connection already established. Use getInstance() to access the existing connection.');
@@ -28,7 +30,8 @@ class ServerConnection {
         if (!ServerConnection.instance) {
             ServerConnection.instance = new ServerConnection('demo', 'demo');
             ServerConnection.instance._demoMode = true;
-            ServerConnection.instance.fetchMetrics();
+            // ServerConnection.instance.fetchMetrics();
+            ServerConnection.instance.fetchTempConfig();
             return ServerConnection.instance;
         } else {
             throw new Error('Demo connection already established. Use getInstance() to access the existing connection.');
@@ -47,7 +50,8 @@ class ServerConnection {
     public get demoMode(): boolean { return this._demoMode; }
 
     public refresh(): void {
-        this.fetchMetrics();
+        // this.fetchMetrics();
+        this.fetchTempConfig();
     }
     
     public getMetric(key: string): any {
@@ -107,6 +111,81 @@ class ServerConnection {
         } catch (error) {
             console.error('Error fetching metrics:', error);
             this._metrics = null;
+        }
+    }
+
+    public getTempConfig(key: string): any {
+        if (this._tempConfig && key in this._tempConfig) {
+            return this._tempConfig[key];
+        }
+        return "N/A";
+    }
+
+    public async setTempConfig(warningTemp: number, shutdownTemp: number, warningsEnabled: boolean, shutdownEnabled: boolean) {
+        if (this._demoMode) return;
+        this._tempConfig = {
+            "warning_temp": warningTemp,
+            "shutdown_temp": shutdownTemp,
+            "warnings_enabled": warningsEnabled,
+            "shutdown_enabled": shutdownEnabled,
+        };
+
+        console.log('Setting temp config:', this._tempConfig);
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // Prevents hanging
+
+            const response = await fetch(`https://${this._address}/set-temp-config?password=${this._password}&warning_temp=${warningTemp}&shutdown_temp=${shutdownTemp}&warnings_enabled=${warningsEnabled}&shutdown_enabled=${shutdownEnabled}`, {
+                method: 'GET',
+                signal: controller.signal,
+                headers: {
+                    "ngrok-skip-browser-warning": "true" // Bypass ngrok’s free tier warning
+                }
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error('Failed to set temp config on server.');
+            }
+        } catch (error) {
+            console.error('Error setting temp config:', error);
+        }
+    }
+
+    private async fetchTempConfig() {
+        if (this._demoMode) {
+            this._tempConfig = {
+                "warning_temp": 75,
+                "shutdown_temp": 85,
+                "warnings_enabled": true,
+                "shutdown_enabled": true,
+            };
+            return;
+        }
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // Prevents hanging
+
+            const response = await fetch(`https://${this._address}/get-temp-config?password=${this._password}`, {
+                method: 'GET',
+                signal: controller.signal,
+                headers: {
+                    "ngrok-skip-browser-warning": "true" // Bypass ngrok’s free tier warning
+                }
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch metrics from server.');
+            }
+            this._tempConfig = await response.json();
+        } catch (error) {
+            console.error('Error fetching temp config:', error);
+            this._tempConfig = null;
         }
     }
 
