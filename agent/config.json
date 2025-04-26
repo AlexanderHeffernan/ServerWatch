@@ -1,0 +1,6 @@
+{
+  "warning_temp": 80,
+  "shutdown_temp": 90,
+  "warnings_enabled": true,
+  "shutdown_enabled": false
+}

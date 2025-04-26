@@ -6,7 +6,8 @@ mod temperature_monitor;
 use push_notifications::send_alertzy_notification;
 use rusty_api::{Api, Routes, Cors, HttpResponse};
 use actix_web::{web, http};
-use std::{env, process::Command};
+use std::{env, process::Command, collections::HashMap};
+use temperature_monitor::TempConfig;
 
 fn main() {
     // Spawn a background task to monitor temperature
@@ -28,7 +29,8 @@ fn main() {
         .add_route_with_password("/metrics", get_metrics, password)
         .add_route_with_password("/test-connection", test_connection, password)
         .add_route_with_password("/shutdown", shutdown, password)
-        .add_route_with_password("/reboot", reboot, password);
+        .add_route_with_password("/reboot", reboot, password)
+        .add_route_with_password("/set-temp-config", set_temp_config, password);
 
     Api::new()
         .certs("serverwatch.crt", "serverwatch.key")
@@ -37,7 +39,7 @@ fn main() {
         .configure_routes(routes)
         .configure_cors(|| {
             Cors::default()
-                .allowed_methods(vec!["GET"])
+                .allowed_methods(vec!["GET", "POST", "PUT"])
                 .allow_any_origin()
                 .allowed_header(http::header::CONTENT_TYPE)
                 .allowed_header("ngrok-skip-browser-warning")
@@ -134,5 +136,37 @@ async fn reboot() -> HttpResponse {
         }
         Ok(Err(e)) => HttpResponse::InternalServerError().body(format!("Error executing reboot command: {}", e)),
         Err(e) => HttpResponse::InternalServerError().body(format!("Blocking task failed: {}", e)),
+    }
+}
+
+async fn set_temp_config(query: web::Query<HashMap<String, String>>) -> HttpResponse {
+    // Extract query parameters
+    let warning_temp = query.get("warning_temp").and_then(|v| v.parse::<u64>().ok());
+    let shutdown_temp = query.get("shutdown_temp").and_then(|v| v.parse::<u64>().ok());
+    let warnings_enabled = query.get("warnings_enabled").and_then(|v| v.parse::<bool>().ok());
+    let shutdown_enabled = query.get("shutdown_enabled").and_then(|v| v.parse::<bool>().ok());
+
+    // Validate that all required parameters are present
+    if let (Some(warning_temp), Some(shutdown_temp), Some(warnings_enabled), Some(shutdown_enabled)) =
+        (warning_temp, shutdown_temp, warnings_enabled, shutdown_enabled)
+    {
+        // Log the received configuration
+        println!(
+            "Received new config: warning_temp={}, shutdown_temp={}, warnings_enabled={}, shutdown_enabled={}",
+            warning_temp, shutdown_temp, warnings_enabled, shutdown_enabled
+        );
+
+        // Save the configuration to the file
+        let new_config = TempConfig {
+            warning_temp,
+            shutdown_temp,
+            warnings_enabled,
+            shutdown_enabled,
+        };
+        new_config.save_to_file("config.json");
+
+        HttpResponse::Ok().body("Temperature settings updated successfully")
+    } else {
+        HttpResponse::BadRequest().body("Missing or invalid query parameters")
     }
 }

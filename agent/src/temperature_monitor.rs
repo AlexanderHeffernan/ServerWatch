@@ -2,9 +2,28 @@ use tokio::time::{self, Duration};
 use crate::getters::get_temperature;
 use crate::push_notifications::send_alertzy_notification;
 use crate::shutdown;
+use serde::{Serialize, Deserialize};
+use std::fs;
 
-const WARNING_TEMPERATURE: u64 = 75;
-const SHUTDOWN_TEMPERATURE: u64 = 85;
+#[derive(Serialize, Deserialize)]
+pub struct TempConfig {
+    pub warning_temp: u64,
+    pub shutdown_temp: u64,
+    pub warnings_enabled: bool,
+    pub shutdown_enabled: bool,
+}
+
+impl TempConfig {
+    pub fn load_from_file(path: &str) -> Self {
+        let data = fs::read_to_string(path).expect("Failed to read config file");
+        serde_json::from_str(&data).expect("Failed to parse config file")
+    }
+
+    pub fn save_to_file(&self, path: &str) {
+        let data = serde_json::to_string_pretty(self).expect("Failed to serialize config");
+        fs::write(path, data).expect("Failed to write config file");
+    }
+}
 
 pub async fn monitor_temperature() {
     let mut interval = time::interval(Duration::from_secs(30));
@@ -13,11 +32,18 @@ pub async fn monitor_temperature() {
     loop {
         interval.tick().await;
 
+        let config = TempConfig::load_from_file("config.json");
+
+        println!("Warning Temperature: {}°C", config.warning_temp);
+        println!("Shutdown Temperature: {}°C", config.shutdown_temp);
+        println!("Warnings Enabled: {}", config.warnings_enabled);
+        println!("Shutdown Enabled: {}", config.shutdown_enabled);
+
         let temperature = get_temperature();
-        if temperature >= SHUTDOWN_TEMPERATURE {
+        if config.shutdown_enabled && temperature >= config.shutdown_temp {
             handle_shutdown(temperature).await;
             break; // Exit the loop after shutdown
-        } else if temperature >= WARNING_TEMPERATURE {
+        } else if config.warnings_enabled && temperature >= config.warning_temp {
             if !warning_sent {
                 handle_warning(temperature).await;
                 warning_sent = true; // Prevent sending multiple warnings
