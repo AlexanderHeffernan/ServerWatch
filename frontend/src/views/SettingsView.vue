@@ -32,7 +32,10 @@
             <label for="shutdownTemp">Set Shutdown Temperature (°C)</label><br />
             <input v-model="shutdownTemp" type="number" min="40" max="150">
         </div>
-        <button @click.prevent="updateTempConfig">Save Settings</button>
+        <button @click.prevent="updateTempConfig" :class="{'loading': isSaving}">
+            <span v-if="isSaving" class="spinner"></span>
+            <span v-else>Save Settings</span>
+        </button>
     </form>
 </template>
 
@@ -44,10 +47,15 @@ const warningEnabled = ref(false);
 const warningTemp = ref(70);
 const shutdownEnabled = ref(false);
 const shutdownTemp = ref(80);
+const isSaving = ref(false);
 
-function updateTempConfig() {
+async function updateTempConfig() {
+    isSaving.value = true;
+    console.log("Saving settings...");
     const connection = serverConnection.value;
-    if (connection) { connection.setTempConfig(warningTemp.value, shutdownTemp.value, warningEnabled.value, shutdownEnabled.value); }
+    if (connection) { await connection.setTempConfig(warningTemp.value, shutdownTemp.value, warningEnabled.value, shutdownEnabled.value); }
+    console.log("Settings saved.");
+    isSaving.value = false;
 }
 
 const tempConfig = computed(() => {
@@ -144,20 +152,6 @@ input[type="number"] {
 div.disabled {
     opacity: 0.3;
     pointer-events: none;
-}
-
-button {
-    background-color: var(--primary-color);
-    color: var(--text-color);
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
-}
-button:hover {
-    background-color: var(--primary-dark-color);
 }
 
 </style>
