@@ -18,7 +18,7 @@ class ServerConnection {
     public static async initiateConnection(address: string, password: string): Promise<ServerConnection> {
         if (!ServerConnection.instance) {
             ServerConnection.instance = new ServerConnection(address, password);
-            // await ServerConnection.instance.fetchMetrics();
+            await ServerConnection.instance.fetchMetrics();
             await ServerConnection.instance.fetchTempConfig();
             return ServerConnection.instance;
         } else {
@@ -30,7 +30,7 @@ class ServerConnection {
         if (!ServerConnection.instance) {
             ServerConnection.instance = new ServerConnection('demo', 'demo');
             ServerConnection.instance._demoMode = true;
-            // ServerConnection.instance.fetchMetrics();
+            ServerConnection.instance.fetchMetrics();
             ServerConnection.instance.fetchTempConfig();
             return ServerConnection.instance;
         } else {
@@ -50,7 +50,7 @@ class ServerConnection {
     public get demoMode(): boolean { return this._demoMode; }
 
     public refresh(): void {
-        // this.fetchMetrics();
+        this.fetchMetrics();
         this.fetchTempConfig();
     }
     
