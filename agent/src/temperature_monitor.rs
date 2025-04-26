@@ -15,8 +15,23 @@ pub struct TempConfig {
 
 impl TempConfig {
     pub fn load_from_file(path: &str) -> Self {
-        let data = fs::read_to_string(path).expect("Failed to read config file");
-        serde_json::from_str(&data).expect("Failed to parse config file")
+        match fs::read_to_string(path) {
+            Ok(data) => {
+                serde_json::from_str(&data).expect("Failed to parse config file")
+            }
+            Err(_) => {
+                // If the file doesn't exist or can't be read, create it with default values
+                eprintln!("Config file not found. Creating a new one with default values.");
+                let default_config = TempConfig {
+                    warning_temp: 75,
+                    shutdown_temp: 85,
+                    warnings_enabled: true,
+                    shutdown_enabled: true,
+                };
+                default_config.save_to_file(path);
+                default_config
+            }
+        }
     }
 
     pub fn save_to_file(&self, path: &str) {
