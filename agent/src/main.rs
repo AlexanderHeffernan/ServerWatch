@@ -30,12 +30,13 @@ fn main() {
         .add_route_with_password("/test-connection", test_connection, password)
         .add_route_with_password("/shutdown", shutdown, password)
         .add_route_with_password("/reboot", reboot, password)
-        .add_route_with_password("/set-temp-config", set_temp_config, password);
+        .add_route_with_password("/set-temp-config", set_temp_config, password)
+        .add_route_with_password("/get-temp-config", get_temp_config, password);
 
     Api::new()
         .certs("serverwatch.crt", "serverwatch.key")
         .rate_limit(1, 1)
-        .bind("0.0.0.0", 49160)
+        .bind("0.0.0.0", 49161)
         .configure_routes(routes)
         .configure_cors(|| {
             Cors::default()
@@ -169,4 +170,12 @@ async fn set_temp_config(query: web::Query<HashMap<String, String>>) -> HttpResp
     } else {
         HttpResponse::BadRequest().body("Missing or invalid query parameters")
     }
+}
+
+async fn get_temp_config() -> HttpResponse {
+    // Load the configuration from the file
+    let config = TempConfig::load_from_file("config.json");
+
+    // Return the configuration as JSON
+    HttpResponse::Ok().json(config)
 }
