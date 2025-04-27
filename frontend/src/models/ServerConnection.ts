@@ -49,9 +49,11 @@ class ServerConnection {
     public get password(): string { return this._password; }
     public get demoMode(): boolean { return this._demoMode; }
 
-    public refresh(): void {
-        this.fetchMetrics();
-        this.fetchTempConfig();
+    public async refresh() {
+        await Promise.all([
+            this.fetchMetrics(), 
+            this.fetchTempConfig()
+        ]);
     }
     
     public getMetric(key: string): any {

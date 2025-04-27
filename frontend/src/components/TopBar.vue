@@ -14,7 +14,7 @@
             </div>
         </div>
         <div class="quick-actions">
-            <i @click="handleRefresh" class="fa-solid fa-arrows-rotate" id="refresh-icon"></i>
+            <i @click="handleRefresh" class="fa-solid fa-arrows-rotate" :class="{ 'refreshing': isRefreshing }" id="refresh-icon"></i>
             <div class="dropdown">
                 <i class="fa-solid fa-bell" id="notification-icon"></i>
                 <div class="dropdown-menu">
@@ -37,13 +37,16 @@ import { ref } from 'vue';
 import { serverConnection } from '../models/ServerConnection';
 
 const isServerDropdownVisible = ref(false);
+const isRefreshing = ref(false);
 
 function toggleServerDropdown() {
     isServerDropdownVisible.value = !isServerDropdownVisible.value;
 }
 
-function handleRefresh() {
-    serverConnection.value?.refresh();
+async function handleRefresh() {
+    isRefreshing.value = true;
+    await serverConnection.value?.refresh();
+    isRefreshing.value = false;
 }
 
 function handleShutdown() {
@@ -224,8 +227,23 @@ function handleReboot() {
     animation: rotate-shake 0.5s ease;
 }
 
-i#refresh-icon:hover {
+i#refresh-icon {
+    transition: opacity 0.3s ease, transform 0.5s ease;
+    opacity: 1;
+}
+
+i#refresh-icon:hover:not(.reloading) {
     animation: rotate-spin 0.5s ease;
+}
+
+i#refresh-icon.refreshing {
+    animation: rotate-spin 0.5s linear infinite !important;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+i#refresh-icon:not(.refreshing) {
+    transform: rotate(0deg); /* Ensures it smoothly transitions back to its normal rotation */
 }
 
 .dropdown-menu a, .dropdown-menu a:visited {
