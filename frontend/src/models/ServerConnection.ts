@@ -1,4 +1,5 @@
 import { ref } from 'vue';
+import { notificationsManager } from './NotificationsManager';
 
 class ServerConnection {
     private static instance: ServerConnection;
@@ -105,14 +106,17 @@ class ServerConnection {
             });
 
             clearTimeout(timeoutId);
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch metrics from server.');
-            }
+            if (!response.ok) { throw new Error('Failed to fetch metrics from server.'); }
             this._metrics = await response.json();
         } catch (error) {
-            console.error('Error fetching metrics:', error);
             this._metrics = null;
+            if (error instanceof Error) {
+                if (error.name === 'TypeError' && error.message.toLowerCase().includes('load failed')) {
+                    notificationsManager.value?.addNotification('Failed to fetch metrics', 'Please try again soon. This may be caused by an excessive amount of requests in a short span of time.', 'error');
+                }
+            } else {
+                console.error('Error fetching metrics:', error);
+            }
         }
     }
 
@@ -186,7 +190,13 @@ class ServerConnection {
             }
             this._tempConfig = await response.json();
         } catch (error) {
-            console.error('Error fetching temp config:', error);
+            if (error instanceof Error) {
+                if (error.name === 'TypeError' && error.message.toLowerCase().includes('load failed')) {
+                    notificationsManager.value?.addNotification('Failed to fetch config file', 'Please try again soon. This may be caused by an excessive amount of requests in a short span of time.', 'error');
+                }
+            } else {
+                console.error('Error fetching metrics:', error);
+            }
             this._tempConfig = null;
         }
     }

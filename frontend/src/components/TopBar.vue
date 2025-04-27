@@ -18,8 +18,23 @@
             <div class="dropdown">
                 <i class="fa-solid fa-bell" id="notification-icon"></i>
                 <div class="dropdown-menu">
-                    <p>No new notifications</p>
-                    <router-link to="/settings#cpu-alerts">Notification Settings</router-link>
+                    <p v-if="!notificationsManager?.notifications">No new notifications</p>
+                    <div v-else>
+                        <p>Notifications</p>
+                        <div
+                            v-for="notification in notificationsManager?.notifications" 
+                            :key="notification.id" 
+                            :class="{ [notification.type]: true, 'open': openNotificationId === notification.id }"
+                            @click="openNotification(notification.id)"
+                            class="notification"
+                        >
+                            <div class="notification-header">
+                                <i v-if="notification.type === 'error'" class="fa-solid fa-triangle-exclamation"></i>
+                                <span>{{ notification.title }}</span>
+                            </div>
+                            <span class="description">{{ notification.message }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="dropdown">
@@ -35,9 +50,20 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { serverConnection } from '../models/ServerConnection';
+import { notificationsManager } from '../models/NotificationsManager';
 
 const isServerDropdownVisible = ref(false);
 const isRefreshing = ref(false);
+
+const openNotificationId = ref("");
+
+function openNotification (notificationId: string) {
+    if (openNotificationId.value === notificationId) {
+        openNotificationId.value = "";
+    } else {
+        openNotificationId.value = notificationId;
+    }
+}
 
 function toggleServerDropdown() {
     isServerDropdownVisible.value = !isServerDropdownVisible.value;
@@ -206,6 +232,7 @@ function handleReboot() {
     white-space: nowrap;
     transition: max-height 0.2s ease, padding 0.2s ease;
     border: 0;
+    overflow-y: auto;
 }
 
 .dropdown:hover .dropdown-menu {
@@ -293,5 +320,61 @@ i#refresh-icon:not(.refreshing) {
 .dropdown-menu p {
     margin: 0;
     padding: 10px 20px;
+}
+
+.notification {
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin: 10px 20px;
+    border-radius: 12px;
+    width: 250px;
+}
+
+.notification.error {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+}
+
+.notification.error:hover {
+    background-color: var(--primary-dark-color);
+}
+
+.notification .notification-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification .notification-header i {
+    margin: 0;
+    padding: 0;
+}
+
+.notification .notification-header span {
+    margin: 0;
+    padding: 0;
+    font-size: 14px;
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: 1.2;
+}
+
+.notification .description {
+    font-size: 12px;
+    color: var(--text-color);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease, margin 0.2s ease;
+    display: block;
+    margin-top: 0px;
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: 1.2;
+}
+
+.notification.open .description {
+    max-height: 50px;
+    margin-top: 5px;
 }
 </style>
