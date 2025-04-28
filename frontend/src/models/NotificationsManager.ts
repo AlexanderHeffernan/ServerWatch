@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref, reactive } from 'vue';
 
 class Notification {
     private _id: string;
@@ -21,7 +21,7 @@ class Notification {
 
 class NotificationsManager {
     private static instance: NotificationsManager;
-    private _notifications: Notification[] = [];
+    private _notifications = reactive<Notification[]>([]);
 
     private constructor() {
         return;
@@ -43,7 +43,7 @@ class NotificationsManager {
         return String(this._notifications.length);
     }
 
-    public get notifications(): Notification[] {
+    public get notifications() {
         return this._notifications;
     }
 }
