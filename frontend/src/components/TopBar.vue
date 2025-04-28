@@ -16,7 +16,9 @@
         <div class="quick-actions">
             <i @click="handleRefresh" class="fa-solid fa-arrows-rotate" :class="{ 'refreshing': isRefreshing }" id="refresh-icon"></i>
             <div class="dropdown">
-                <i class="fa-solid fa-bell" id="notification-icon" :class="{ 'pulse-error': pulseNotification}"></i>
+                <i class="fa-solid fa-bell" id="notification-icon" :class="{ 'pulse-error': pulseNotification}">
+                    <span v-if="notificationsManager?.notifications?.length" class="notification-badge">{{ notificationsManager?.notifications?.length }}</span>
+                </i>
                 <div class="dropdown-menu">
                     <p v-if="!notificationsManager?.notifications">No new notifications</p>
                     <div v-else>
@@ -405,7 +407,7 @@ i#refresh-icon:not(.refreshing) {
 #notification-icon {
     display: inline-block;
     transition: text-shadow 0.3s ease, transform 0.5s ease, color 0.3s ease;
-
+    position: relative;
 }
 
 .pulse-error {
@@ -424,5 +426,24 @@ i#refresh-icon:not(.refreshing) {
     50% { transform: rotate(10deg) scale(1.4); }
     75% { transform: rotate(-10deg) scale(1.4); }
     100% { transform: rotate(0) scale(1.4); }
+}
+
+#notification-icon .notification-badge {
+    position: absolute;
+    top: 10px;
+    right: -4px;
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    text-align: center;
+    box-sizing: border-box;
 }
 </style>
