@@ -16,7 +16,7 @@
         <div class="quick-actions">
             <i @click="handleRefresh" class="fa-solid fa-arrows-rotate" :class="{ 'refreshing': isRefreshing }" id="refresh-icon"></i>
             <div class="dropdown">
-                <i class="fa-solid fa-bell" id="notification-icon"></i>
+                <i class="fa-solid fa-bell" id="notification-icon" :class="{ 'pulse-error': pulseNotification}"></i>
                 <div class="dropdown-menu">
                     <p v-if="!notificationsManager?.notifications">No new notifications</p>
                     <div v-else>
@@ -48,7 +48,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { serverConnection } from '../models/ServerConnection';
 import { notificationsManager } from '../models/NotificationsManager';
 
@@ -56,6 +56,7 @@ const isServerDropdownVisible = ref(false);
 const isRefreshing = ref(false);
 
 const openNotificationId = ref("");
+const pulseNotification = ref(false);
 
 function openNotification (notificationId: string) {
     if (openNotificationId.value === notificationId) {
@@ -82,6 +83,29 @@ function handleShutdown() {
 function handleReboot() {
     serverConnection.value?.reboot();
 }
+
+let oldNotifications = [];
+
+watch(
+    () => notificationsManager.value?.notifications,
+    (newNotifications) => {
+        console.log('Watcher triggered');
+        console.log('New notifications:', newNotifications?.length);
+        console.log('Old notifications:', oldNotifications.length);
+
+        if ((newNotifications?.length ?? 0) > oldNotifications?.length) {
+            const latestNotification = newNotifications?.[newNotifications.length - 1];
+            if (latestNotification?.type === 'error') {
+                pulseNotification.value = true;
+                console.log("Pulse notification triggered");
+                setTimeout(() => (pulseNotification.value = false), 1000);
+            }
+        }
+
+        oldNotifications = [...(newNotifications || [])];
+    },
+    { deep: true }
+);
 
 </script>
 <style scoped>
@@ -250,7 +274,7 @@ function handleReboot() {
     transition: text-shadow 0.3s ease;
 }
 
-.dropdown:hover i#notification-icon {
+.dropdown:hover i#notification-icon:not(.pulse-error) {
     animation: rotate-shake 0.5s ease;
 }
 
@@ -376,5 +400,29 @@ i#refresh-icon:not(.refreshing) {
 .notification.open .description {
     max-height: 50px;
     margin-top: 5px;
+}
+
+#notification-icon {
+    display: inline-block;
+    transition: text-shadow 0.3s ease, transform 0.5s ease, color 0.3s ease;
+
+}
+
+.pulse-error {
+    /* animation: pulse-grow 1s ease-in-out; */
+    text-shadow: 0 0 15px var(--primary-color), /* Inner glow */
+                 0 0 20px var(--primary-color), /* Outer glow */
+                 0 0 25px var(--primary-color);
+    animation: rotate-shake-scale 0.5s ease;
+    animation-iteration-count: infinite;
+    color: var(--primary-color) !important;
+}
+
+@keyframes rotate-shake-scale {
+    0% { transform: rotate(0) scale(1.4); }
+    25% { transform: rotate(-10deg) scale(1.4); }
+    50% { transform: rotate(10deg) scale(1.4); }
+    75% { transform: rotate(-10deg) scale(1.4); }
+    100% { transform: rotate(0) scale(1.4); }
 }
 </style>
