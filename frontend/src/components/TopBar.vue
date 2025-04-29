@@ -32,7 +32,12 @@
                         >
                             <div class="notification-header">
                                 <i v-if="notification.type === 'error'" class="fa-solid fa-triangle-exclamation"></i>
-                                <span>{{ notification.title }}</span>
+                                <span class="title">{{ notification.title }}</span>
+                                <span class="timestamp">
+                                    {{ new Date(notification.timestamp).toDateString() === new Date().toDateString() 
+                                        ? notification.formattedTimestamp 
+                                        : notification.formattedDate }}
+                                </span>
                             </div>
                             <span class="description">{{ notification.message }}</span>
                         </div>
@@ -243,7 +248,6 @@ watch(
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
 }
 
 .dropdown-menu {
@@ -355,15 +359,15 @@ i#refresh-icon:not(.refreshing) {
     margin: 10px 20px;
     border-radius: 12px;
     width: 250px;
-}
-
-.notification.error {
-    background-color: var(--primary-color);
+    background-color: var(--background-color);
     color: var(--text-color);
+    border: 1px solid var(--border-color);
+    transition: border 0.3s ease;
+    
 }
 
-.notification.error:hover {
-    background-color: var(--primary-dark-color);
+.notification:hover {
+    border: 1px solid var(--primary-color);
 }
 
 .notification .notification-header {
@@ -377,13 +381,26 @@ i#refresh-icon:not(.refreshing) {
     padding: 0;
 }
 
-.notification .notification-header span {
+.notification.error .notification-header i {
+    color: var(--primary-color);
+    font-size: 16px;
+}
+
+.notification .notification-header .title {
     margin: 0;
     padding: 0;
-    font-size: 14px;
+    font-size: 12px;
     white-space: normal;
     word-wrap: break-word;
     line-height: 1.2;
+}
+
+.notification .notification-header .timestamp {
+    font-size: 10px;
+    color: var(--background-lighter-color);
+    margin-bottom: auto;
+    margin-left: auto;
+    font-weight: 400;
 }
 
 .notification .description {
@@ -391,17 +408,20 @@ i#refresh-icon:not(.refreshing) {
     color: var(--text-color);
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.2s ease, margin 0.2s ease;
+    transition: max-height 0.2s ease, margin 0.2s ease, border 0.3s ease;
     display: block;
     margin-top: 0px;
     white-space: normal;
     word-wrap: break-word;
     line-height: 1.2;
+    border-top: solid 0px var(--background-color);
 }
 
 .notification.open .description {
     max-height: 50px;
     margin-top: 5px;
+    padding-top: 5px;
+    border-top: solid 1px var(--border-color);
 }
 
 #notification-icon {

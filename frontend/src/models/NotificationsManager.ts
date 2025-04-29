@@ -5,18 +5,34 @@ class Notification {
     private _title: string;
     private _message: string;
     private _type: string;
+    private _timestamp: Date;
 
-    constructor(id: string, title: string, message: string, type: string) {
+    constructor(id: string, title: string, message: string, type: string, timestamp: Date) {
         this._id = id;
         this._title = title;
         this._message = message;
         this._type = type;
+        this._timestamp = timestamp;
     }
 
     public get id(): string { return this._id; }
     public get title(): string { return this._title; }
     public get message(): string { return this._message; }
     public get type(): string { return this._type; }
+    public get timestamp(): Date { return this._timestamp; }
+    public get formattedTimestamp(): string {
+        return this._timestamp.toLocaleString('en-NZ', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+    public get formattedDate(): string {
+        return this._timestamp.toLocaleString('en-NZ', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+    }
 }
 
 class NotificationsManager {
@@ -35,7 +51,8 @@ class NotificationsManager {
 
     public addNotification(title: string, message: string, type: string): void {
         const id = this.generateId();
-        const notification = new Notification(id, title, message, type);
+        const timestamp = new Date();
+        const notification = new Notification(id, title, message, type, timestamp);
         this._notifications.push(notification);
     }
 
