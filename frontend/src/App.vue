@@ -242,4 +242,24 @@ button:disabled {
         transform: rotate(360deg);
     }
 }
+
+/* Minimalist scrollbars */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--background-light-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--background-color);
+}
+
+::-webkit-scrollbar-track {
+    background-color: var(--background-dark-color);
+    border-radius: 4px;
+}
 </style>
