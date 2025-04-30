@@ -56,6 +56,13 @@ class NotificationsManager {
         this._notifications.push(notification);
     }
 
+    public removeNotification(id: string): void {
+        const index = this._notifications.findIndex(notification => notification.id === id);
+        if (index !== -1) {
+            this._notifications.splice(index, 1);
+        }
+    }
+
     private generateId(): string {
         return String(this._notifications.length);
     }

@@ -31,13 +31,21 @@
                             class="notification"
                         >
                             <div class="notification-header">
-                                <i v-if="notification.type === 'error'" class="fa-solid fa-triangle-exclamation"></i>
-                                <span class="title">{{ notification.title }}</span>
-                                <span class="timestamp">
-                                    {{ new Date(notification.timestamp).toDateString() === new Date().toDateString() 
-                                        ? notification.formattedTimestamp 
-                                        : notification.formattedDate }}
-                                </span>
+                                <i v-if="notification.type === 'error'" class="fa-solid fa-triangle-exclamation type-icon"></i>
+                                <div class="main-container">
+                                    <span class="title">{{ notification.title }}</span>
+                                    <span class="timestamp">
+                                        {{ new Date(notification.timestamp).toDateString() === new Date().toDateString() 
+                                            ? notification.formattedTimestamp 
+                                            : notification.formattedDate }}
+                                    </span>
+                                </div>
+                                <div 
+                                    class="delete-icon-container"
+                                    @click="notificationsManager.removeNotification(notification.id)"
+                                >
+                                    <i class="fa-solid fa-trash-can delete-icon"></i>
+                                </div>
                             </div>
                             <span class="description">{{ notification.message }}</span>
                         </div>
@@ -353,7 +361,6 @@ i#refresh-icon:not(.refreshing) {
 }
 
 .notification {
-    padding: 10px 20px;
     cursor: pointer;
     transition: background-color 0.3s ease;
     margin: 10px 20px;
@@ -363,7 +370,6 @@ i#refresh-icon:not(.refreshing) {
     color: var(--text-color);
     border: 1px solid var(--border-color);
     transition: border 0.3s ease;
-    
 }
 
 .notification:hover {
@@ -374,6 +380,22 @@ i#refresh-icon:not(.refreshing) {
     display: flex;
     align-items: center;
     gap: 10px;
+    height: 58px;
+}
+
+.notification .notification-header .main-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+    position: relative;
+}
+
+.notification .notification-header .top-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-grow: 1;
 }
 
 .notification .notification-header i {
@@ -381,9 +403,14 @@ i#refresh-icon:not(.refreshing) {
     padding: 0;
 }
 
-.notification.error .notification-header i {
+.notification.error .notification-header .type-icon {
     color: var(--primary-color);
     font-size: 16px;
+    margin-left: 10px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .notification .notification-header .title {
@@ -393,34 +420,84 @@ i#refresh-icon:not(.refreshing) {
     white-space: normal;
     word-wrap: break-word;
     line-height: 1.2;
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
 }
 
 .notification .notification-header .timestamp {
     font-size: 10px;
     color: var(--background-lighter-color);
-    margin-bottom: auto;
-    margin-left: auto;
     font-weight: 400;
+    margin-left: auto;
+    position: absolute;
+    right: 0;
+    bottom: 5px;
 }
+
+.notification .notification-header .delete-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary-color);
+    /* border-left: 1px solid var(--border-color); */
+    height: 100%;
+    padding: 0 10px;
+    border-radius: 0 11px 11px 0;
+    transition: color 0.3s ease, background-color 0.3s ease, border-radius 0.3s ease;
+}
+
+.notification.open .notification-header .delete-icon-container {
+    border-radius: 0 11px 0 0;
+}
+
+.notification .notification-header .delete-icon-container .delete-icon {
+    color: var(--primary-dark-color);
+    font-size: 12px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.notification .notification-header .delete-icon-container:hover {
+    background-color: var(--primary-dark-color);
+}
+
+.notification .notification-header .delete-icon-container:hover .delete-icon {
+    color: var(--primary-color);
+}
+
+.notification:has(.notification-header .delete-icon-container:hover) {
+    border: 1px solid var(--primary-dark-color);
+}
+
+.notification:has(.notification-header .delete-icon-container:hover) .title,
+.notification:has(.notification-header .delete-icon-container:hover) .type-icon,
+.notification:has(.notification-header .delete-icon-container:hover) .timestamp,
+.notification:has(.notification-header .delete-icon-container:hover) .description {
+    opacity: 0.2;
+    transition: opacity 0.3s ease;
+}
+
+
 
 .notification .description {
     font-size: 12px;
     color: var(--text-color);
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.2s ease, margin 0.2s ease, border 0.3s ease;
+    transition: max-height 0.2s ease, margin 0.2s ease, border 0.3s ease, padding 0.2s ease;
     display: block;
     margin-top: 0px;
     white-space: normal;
     word-wrap: break-word;
     line-height: 1.2;
     border-top: solid 0px var(--background-color);
+    padding: 0px 5px 0px 10px;
 }
 
 .notification.open .description {
-    max-height: 50px;
-    margin-top: 5px;
-    padding-top: 5px;
+    max-height: 100px;
+    padding: 10px 5px 10px 10px;
     border-top: solid 1px var(--border-color);
 }
 
