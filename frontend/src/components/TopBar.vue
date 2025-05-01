@@ -29,6 +29,7 @@
                             :class="{ [notification.type]: true, 'open': openNotificationId === notification.id }"
                             @click="openNotification(notification.id)"
                             class="notification"
+                            :data-id="notification.id"
                         >
                             <div class="notification-header">
                                 <i v-if="notification.type === 'error'" class="fa-solid fa-triangle-exclamation type-icon"></i>
@@ -42,7 +43,8 @@
                                 </div>
                                 <div 
                                     class="delete-icon-container"
-                                    @click="notificationsManager.removeNotification(notification.id)"
+                                    @click="deleteNotification(notification.id)"
+                                    @click.stop
                                 >
                                     <i class="fa-solid fa-trash-can delete-icon"></i>
                                 </div>
@@ -78,6 +80,18 @@ function openNotification (notificationId: string) {
         openNotificationId.value = "";
     } else {
         openNotificationId.value = notificationId;
+    }
+}
+
+function deleteNotification(notificationId: string) {
+    const notificationElement = document.querySelector(`.notification[data-id="${notificationId}"]`);
+    console.log("Hello", notificationElement);
+    if (notificationElement) {
+        notificationElement.classList.remove('open');
+        notificationElement.classList.add('fade-out');
+        setTimeout(() => {
+            notificationsManager.value?.removeNotification(notificationId);
+        }, 300); // Match this with the CSS transition duration
     }
 }
 
@@ -499,6 +513,12 @@ i#refresh-icon:not(.refreshing) {
     max-height: 100px;
     padding: 10px 5px 10px 10px;
     border-top: solid 1px var(--border-color);
+}
+
+.notification.fade-out {
+    transform: scaleX(0);
+    transform-origin: 0;
+    transition: transform 0.2s ease;
 }
 
 #notification-icon {
