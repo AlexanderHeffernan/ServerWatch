@@ -51,3 +51,7 @@ pub fn get_disks() -> Vec<Disk> {
         })
         .collect()
 }
+
+pub fn get_server_name() -> String {
+    sysinfo::System::host_name().unwrap_or_else(|| "Unknown".to_string())
+}

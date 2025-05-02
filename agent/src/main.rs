@@ -69,7 +69,9 @@ async fn get_metrics() -> HttpResponse {
 }
 
 async fn test_connection() -> HttpResponse {
-    HttpResponse::Ok().body("Connection successful")
+    use getters::get_server_name;
+
+    HttpResponse::Ok().json(HashMap::from([("server_name", get_server_name())]))
 }
 
 pub async fn shutdown() -> HttpResponse {
