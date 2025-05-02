@@ -69,7 +69,7 @@ window.addEventListener('resize', () => {
 .side-nav {
     background-color: #181E20;
     height: 100%;
-    width: 250px;
+    width: 205px;
     padding: 15px;
     transition: width 0.4s ease, padding 0.4s ease;
     border-right: 1px solid var(--border-color);
