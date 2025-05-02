@@ -19,11 +19,13 @@
                 <i class="fa-solid fa-bell" id="notification-icon" :class="{ 'pulse-error': pulseNotification}">
                     <span v-if="notificationsManager?.notifications?.length" class="notification-badge">{{ notificationsManager?.notifications?.length }}</span>
                 </i>
-                <div class="dropdown-menu">
+                <div class="dropdown-menu notification-dropdown">
                     <p v-if="!notificationsManager?.notifications">No new notifications</p>
                     <div v-else>
-                        <p>Notifications</p>
+                        <p style="font-weight: bold; padding-bottom: 0px;">Notifications</p>
+                        <p v-if="notificationsManager?.notifications?.length === 0">No new notifications</p>
                         <div
+                            
                             v-for="notification in notificationsManager?.notifications" 
                             :key="notification.id" 
                             :class="{ [notification.type]: true, 'open': openNotificationId === notification.id }"
@@ -285,6 +287,10 @@ watch(
     transition: max-height 0.2s ease, padding 0.2s ease;
     border: 0;
     overflow-y: auto;
+}
+
+.dropdown-menu.notification-dropdown {
+    width: 291px;
 }
 
 .dropdown:hover .dropdown-menu {
