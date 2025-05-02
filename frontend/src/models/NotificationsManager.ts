@@ -63,6 +63,10 @@ class NotificationsManager {
         }
     }
 
+    public clearNotifications(): void {
+        this._notifications = reactive([]);
+    }
+
     private generateId(): string {
         return String(this._notifications.length);
     }

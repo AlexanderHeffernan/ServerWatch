@@ -2,7 +2,7 @@ import { ref } from 'vue';
 import { notificationsManager } from './NotificationsManager';
 
 class ServerConnection {
-    private static instance: ServerConnection;
+    private static instance: ServerConnection | null = null;
     private _address: string;
     private _password: string;
     private _metrics: any = null;
@@ -247,6 +247,10 @@ class ServerConnection {
         } catch (error) {
             console.error('Error rebooting server:', error);
         }
+    }
+
+    public disconnect() {
+        ServerConnection.instance = null;
     }
 }
 

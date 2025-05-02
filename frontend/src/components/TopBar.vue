@@ -6,11 +6,11 @@
             <i @click="toggleServerDropdown" class="fa-solid fa-chevron-down" :class="{ 'rotate': isServerDropdownVisible }"></i>
             <div class="server-dropdown" :class="{ 'show': isServerDropdownVisible }">
                 <p>Server Options</p>
-                <a>Disconnect</a>
-                <a>Add Server</a>
+                <a @click="handleDisconnect">Disconnect</a>
+                <a class="disabled">Add Server</a>
                 <hr />
-                <p>Your Servers</p>
-                <a>Alex's Raspberry Pi</a>
+                <p class="disabled">Your Servers</p>
+                <a class="disabled">Alex's Raspberry Pi</a>
             </div>
         </div>
         <div class="quick-actions">
@@ -72,10 +72,24 @@ import { serverConnection } from '../models/ServerConnection';
 import { notificationsManager } from '../models/NotificationsManager';
 
 const isServerDropdownVisible = ref(false);
+
+function handleDisconnect() {
+    if (serverConnection.value) {
+        serverConnection.value.disconnect();
+        serverConnection.value = null;
+    }
+    if (notificationsManager.value) {
+        notificationsManager.value.clearNotifications();
+    }
+    isServerDropdownVisible.value = false;
+    openNotificationId.value = "";
+}
+
 const isRefreshing = ref(false);
 
 const openNotificationId = ref("");
 const pulseNotification = ref(false);
+
 
 function openNotification (notificationId: string) {
     if (openNotificationId.value === notificationId) {
@@ -87,7 +101,6 @@ function openNotification (notificationId: string) {
 
 function deleteNotification(notificationId: string) {
     const notificationElement = document.querySelector(`.notification[data-id="${notificationId}"]`);
-    console.log("Hello", notificationElement);
     if (notificationElement) {
         notificationElement.classList.remove('open');
         notificationElement.classList.add('fade-out');
@@ -120,10 +133,6 @@ let oldNotifications = [];
 watch(
     () => notificationsManager.value?.notifications,
     (newNotifications) => {
-        console.log('Watcher triggered');
-        console.log('New notifications:', newNotifications?.length);
-        console.log('Old notifications:', oldNotifications.length);
-
         if ((newNotifications?.length ?? 0) > oldNotifications?.length) {
             const latestNotification = newNotifications?.[newNotifications.length - 1];
             if (latestNotification?.type === 'error') {
@@ -249,6 +258,11 @@ watch(
 
 .server-dropdown a:hover {
     color: var(--primary-color);
+}
+
+a.disabled, p.disabled {
+    pointer-events: none;
+    opacity: 0.3;
 }
 
 .quick-actions {
