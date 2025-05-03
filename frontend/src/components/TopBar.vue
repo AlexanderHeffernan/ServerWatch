@@ -65,10 +65,16 @@
             </div>
         </div>
         <ConfirmDialog
-            :visible="isConfirmDialogVisible"
+            :visible="isShutdownConfirmDialogVisible"
             message="Are you sure you want to shut down the server?"
             @confirm="confirmShutdown"
             @cancel="cancelShutdown"
+        />
+        <ConfirmDialog
+            :visible="isRebootConfirmDialogVisible"
+            message="Are you sure you want to reboot the server?"
+            @confirm="confirmReboot"
+            @cancel="cancelReboot"
         />
     </div>
 </template>
@@ -127,19 +133,24 @@ async function handleRefresh() {
     isRefreshing.value = false;
 }
 
-const isConfirmDialogVisible = ref(false);
+const isShutdownConfirmDialogVisible = ref(false);
+const isRebootConfirmDialogVisible = ref(false);
 
-function handleShutdown() { isConfirmDialogVisible.value = true; }
+function handleShutdown() { isShutdownConfirmDialogVisible.value = true; }
 function confirmShutdown() {
-    isConfirmDialogVisible.value = false;
+    isShutdownConfirmDialogVisible.value = false;
     serverConnection.value?.shutdown();
     handleDisconnect();
 }
-function cancelShutdown() { isConfirmDialogVisible.value = false; }
+function cancelShutdown() { isShutdownConfirmDialogVisible.value = false; }
 
-function handleReboot() {
+function handleReboot() { isRebootConfirmDialogVisible.value = true; }
+function confirmReboot() {
+    isRebootConfirmDialogVisible.value = false;
     serverConnection.value?.reboot();
+    handleDisconnect();
 }
+function cancelReboot() { isRebootConfirmDialogVisible.value = false; }
 
 let oldNotifications = [];
 
