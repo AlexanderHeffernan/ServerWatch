@@ -35,7 +35,7 @@ fn main() {
 
     Api::new()
         .certs("serverwatch.crt", "serverwatch.key")
-        .rate_limit(3, 3)
+        .rate_limit(3, 10)
         .bind("0.0.0.0", 49160)
         .configure_routes(routes)
         .configure_cors(|| {
