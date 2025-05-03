@@ -56,13 +56,15 @@ async function connectToServer() {
             throw new Error('Failed to connect to the server.');
         }
 
-        const data = await response.text();
-        if (data === 'Connection successful') {
-            // Handle successful connection
-            initiateServerConnection(serverIp.value, serverPassword.value);
-        } else {
-            errorMessage.value = data || 'Connection failed.';
+        let serverName = 'Unknown Server';
+        try {
+            const data = await response.json();
+            serverName = data.serverName || serverName;
+        } catch {
+            console.log('Failed to parse server name from response.');
         }
+
+        initiateServerConnection(serverIp.value, serverPassword.value, serverName);
     } catch (error) {
         errorMessage.value = (error as Error).message || 'An error occurred.';
     }

@@ -5,20 +5,23 @@ class ServerConnection {
     private static instance: ServerConnection | null = null;
     private _address: string;
     private _password: string;
+    private _serverName: string;
     private _metrics: any = null;
     private _tempConfig: any = null;
     private _demoMode = false;
 
-    private constructor(address: string, password: string) {
+    private constructor(address: string, password: string, serverName: string) {
         if (!address) { throw new Error('Address is required to establish a server connection.'); }
         if (!password) { throw new Error('Password is required to establish a server connection.'); }
+        if (!serverName) { throw new Error('Server name is required to establish a server connection.'); }
         this._address = address;
         this._password = password;
+        this._serverName = serverName;
     }
 
-    public static async initiateConnection(address: string, password: string): Promise<ServerConnection> {
+    public static async initiateConnection(address: string, password: string, serverName: string): Promise<ServerConnection> {
         if (!ServerConnection.instance) {
-            ServerConnection.instance = new ServerConnection(address, password);
+            ServerConnection.instance = new ServerConnection(address, password, serverName);
             await ServerConnection.instance.fetchMetrics();
             await ServerConnection.instance.fetchTempConfig();
             return ServerConnection.instance;
@@ -29,7 +32,7 @@ class ServerConnection {
 
     public static initiateDemoConnection(): ServerConnection {
         if (!ServerConnection.instance) {
-            ServerConnection.instance = new ServerConnection('demo', 'demo');
+            ServerConnection.instance = new ServerConnection('demo', 'demo', 'Demo Server');
             ServerConnection.instance._demoMode = true;
             ServerConnection.instance.fetchMetrics();
             ServerConnection.instance.fetchTempConfig();
@@ -48,6 +51,7 @@ class ServerConnection {
 
     public get address(): string { return this._address; }
     public get password(): string { return this._password; }
+    public get serverName(): string { return this._serverName; }
     public get demoMode(): boolean { return this._demoMode; }
 
     public async refresh() {
@@ -255,9 +259,9 @@ class ServerConnection {
 }
 
 export const serverConnection = ref<ServerConnection | null>(ServerConnection.getInstance());
-export const initiateServerConnection = async (address: string, password: string): Promise<void> => {
+export const initiateServerConnection = async (address: string, password: string, serverName: string): Promise<void> => {
     try {
-        serverConnection.value = await ServerConnection.initiateConnection(address, password);
+        serverConnection.value = await ServerConnection.initiateConnection(address, password, serverName);
     } catch (error) {
         console.error('Error establishing server connection:', error);
         serverConnection.value = null;

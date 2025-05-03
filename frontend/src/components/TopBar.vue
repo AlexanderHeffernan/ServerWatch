@@ -2,7 +2,7 @@
     <div class="top-bar">
         <i class="mobile-icon fa-solid fa-bars" @click="$emit('mobile-sidebar-toggle')"></i>
         <div class="server-name">
-            <h2 @click="toggleServerDropdown">Alex's Raspberry Pi</h2>
+            <h2 @click="toggleServerDropdown">{{ serverConnection?.serverName }}</h2>
             <i @click="toggleServerDropdown" class="fa-solid fa-chevron-down" :class="{ 'rotate': isServerDropdownVisible }"></i>
             <div class="server-dropdown" :class="{ 'show': isServerDropdownVisible }">
                 <p>Server Options</p>
@@ -10,7 +10,7 @@
                 <a class="disabled">Add Server</a>
                 <hr />
                 <p class="disabled">Your Servers</p>
-                <a class="disabled">Alex's Raspberry Pi</a>
+                <a class="disabled">{{ serverConnection?.serverName }}</a>
             </div>
         </div>
         <div class="quick-actions">
