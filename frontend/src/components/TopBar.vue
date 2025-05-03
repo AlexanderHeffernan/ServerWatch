@@ -64,12 +64,19 @@
                 </div>
             </div>
         </div>
+        <ConfirmDialog
+            :visible="isConfirmDialogVisible"
+            message="Are you sure you want to shut down the server?"
+            @confirm="confirmShutdown"
+            @cancel="cancelShutdown"
+        />
     </div>
 </template>
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { serverConnection } from '../models/ServerConnection';
 import { notificationsManager } from '../models/NotificationsManager';
+import ConfirmDialog from './ConfirmDialog.vue';
 
 const isServerDropdownVisible = ref(false);
 
@@ -120,9 +127,15 @@ async function handleRefresh() {
     isRefreshing.value = false;
 }
 
-function handleShutdown() {
+const isConfirmDialogVisible = ref(false);
+
+function handleShutdown() { isConfirmDialogVisible.value = true; }
+function confirmShutdown() {
+    isConfirmDialogVisible.value = false;
     serverConnection.value?.shutdown();
+    handleDisconnect();
 }
+function cancelShutdown() { isConfirmDialogVisible.value = false; }
 
 function handleReboot() {
     serverConnection.value?.reboot();
