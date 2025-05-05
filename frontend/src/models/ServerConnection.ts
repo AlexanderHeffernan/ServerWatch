@@ -22,6 +22,7 @@ class ServerConnection {
     public static async initiateConnection(address: string, password: string, serverName: string): Promise<ServerConnection> {
         if (!ServerConnection.instance) {
             ServerConnection.instance = new ServerConnection(address, password, serverName);
+            
             await ServerConnection.instance.fetchMetrics();
             await ServerConnection.instance.fetchTempConfig();
             return ServerConnection.instance;
@@ -33,6 +34,7 @@ class ServerConnection {
     public static initiateDemoConnection(): ServerConnection {
         if (!ServerConnection.instance) {
             ServerConnection.instance = new ServerConnection('demo', 'demo', 'Demo Server');
+            
             ServerConnection.instance._demoMode = true;
             ServerConnection.instance.fetchMetrics();
             ServerConnection.instance.fetchTempConfig();
@@ -230,7 +232,10 @@ class ServerConnection {
     }
 
     public async reboot() {
-        if (this._demoMode) return;
+        savedIp.value = this._address;
+        savedPassword.value = this._password;
+        savedDemoMode.value = this._demoMode;
+        if (this._demoMode) { return; }    
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000); // Prevents hanging
@@ -262,6 +267,9 @@ export const serverConnection = ref<ServerConnection | null>(ServerConnection.ge
 export const initiateServerConnection = async (address: string, password: string, serverName: string): Promise<void> => {
     try {
         serverConnection.value = await ServerConnection.initiateConnection(address, password, serverName);
+        savedIp.value = null;
+        savedPassword.value = null;
+        savedDemoMode.value = false;
     } catch (error) {
         console.error('Error establishing server connection:', error);
         serverConnection.value = null;
@@ -271,8 +279,15 @@ export const initiateServerConnection = async (address: string, password: string
 export function initiateDemoConnection(): void {
     try {
         serverConnection.value = ServerConnection.initiateDemoConnection();
+        savedIp.value = null;
+        savedPassword.value = null;
+        savedDemoMode.value = false;
     } catch (error) {
         console.error('Error establishing demo connection:', error);
         serverConnection.value = null;
     }
 }
+
+export const savedIp = ref<string | null>(null);
+export const savedPassword = ref<string | null>(null);
+export const savedDemoMode = ref<boolean>(false);

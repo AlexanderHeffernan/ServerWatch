@@ -1,5 +1,6 @@
 <template>
-    <ConnectToServer v-if="!serverConnection" />
+    <ReconnectDialog v-if="savedIp && savedPassword && !serverConnection" />
+    <ConnectToServer v-else-if="!serverConnection" />
     <SideNav @sidebar-toggled="handleSidebarToggle" />
     <div class="main-container">
         <TopBar @mobile-sidebar-toggle="handleMobileSidebarToggle" />
@@ -13,8 +14,9 @@
 import { ref, provide } from 'vue';
 import SideNav from './components/SideNav.vue';
 import TopBar from './components/TopBar.vue';
+import ReconnectDialog from './components/ReconnectDialog.vue';
 import ConnectToServer from './components/ConnectToServer.vue'
-import { serverConnection } from './models/ServerConnection';
+import { serverConnection, savedIp, savedPassword } from './models/ServerConnection';
 // import ServerConnection from './models/ServerConnection';
 
 const isSidebarMoving = ref(false);
