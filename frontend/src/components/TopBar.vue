@@ -1,6 +1,6 @@
 <template>
     <div class="top-bar">
-        <i class="mobile-icon fa-solid fa-bars" @click="$emit('mobile-sidebar-toggle')"></i>
+        <i class="mobile-icon fa-solid fa-bars" @click="handleSidebarToggle"></i>
         <div class="server-name">
             <h2 @click="toggleServerDropdown">{{ serverConnection?.serverName }}</h2>
             <i @click="toggleServerDropdown" class="fa-solid fa-chevron-down" :class="{ 'rotate': isServerDropdownVisible }"></i>
@@ -79,10 +79,19 @@
     </div>
 </template>
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, defineEmits } from 'vue';
 import { serverConnection } from '../models/ServerConnection';
 import { notificationsManager } from '../models/NotificationsManager';
 import ConfirmDialog from './ConfirmDialog.vue';
+
+const emit = defineEmits(['mobile-sidebar-toggle']);
+
+function handleSidebarToggle() {
+    emit('mobile-sidebar-toggle');
+    isServerDropdownVisible.value = false;
+    isPowerDropdownToggled.value = false;
+    isNotificationDropdownToggled.value = false;
+}
 
 const isServerDropdownVisible = ref(false);
 
@@ -108,6 +117,11 @@ function toggleNotificationDropdown() {
     } else {
         isNotificationDropdownToggled.value = !isNotificationDropdownToggled.value;
     }
+
+    if (isNotificationDropdownToggled.value === true) {
+        isPowerDropdownToggled.value = false;
+        isServerDropdownVisible.value = false;
+    }
 }
 
 const isPowerDropdownToggled = ref<boolean | null>(null);
@@ -117,6 +131,11 @@ function togglePowerDropdown() {
         isPowerDropdownToggled.value = true;
     } else {
         isPowerDropdownToggled.value = !isPowerDropdownToggled.value;
+    }
+
+    if (isPowerDropdownToggled.value === true) {
+        isNotificationDropdownToggled.value = false;
+        isServerDropdownVisible.value = false;
     }
 }
 
@@ -145,6 +164,11 @@ function deleteNotification(notificationId: string) {
 
 function toggleServerDropdown() {
     isServerDropdownVisible.value = !isServerDropdownVisible.value;
+
+    if (isServerDropdownVisible.value === true) {
+        isPowerDropdownToggled.value = false;
+        isNotificationDropdownToggled.value = false;
+    }
 }
 
 async function handleRefresh() {
@@ -349,6 +373,14 @@ a.disabled, p.disabled {
 
 .dropdown-menu.notification-dropdown {
     width: 291px;
+}
+
+@media (max-width: 540px) {
+    .dropdown-menu.notification-dropdown {
+        position: absolute;
+        width: 100vw;
+        right: -51px;
+    }
 }
 
 .dropdown:hover .dropdown-menu:not(.hide), .dropdown-menu.show {
