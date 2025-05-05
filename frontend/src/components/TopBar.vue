@@ -16,10 +16,10 @@
         <div class="quick-actions">
             <i @click="handleRefresh" class="fa-solid fa-arrows-rotate" :class="{ 'refreshing': isRefreshing }" id="refresh-icon"></i>
             <div class="dropdown">
-                <i class="fa-solid fa-bell" id="notification-icon" :class="{ 'pulse-error': pulseNotification}">
+                <i @click="toggleNotificationDropdown" class="fa-solid fa-bell" id="notification-icon" :class="{ 'pulse-error': pulseNotification}">
                     <span v-if="notificationsManager?.notifications?.length" class="notification-badge">{{ notificationsManager?.notifications?.length }}</span>
                 </i>
-                <div class="dropdown-menu notification-dropdown">
+                <div class="dropdown-menu notification-dropdown" :class="{ 'show': isNotificationDropdownToggled === true, 'hide': isNotificationDropdownToggled === false }">
                     <p v-if="!notificationsManager?.notifications">No new notifications</p>
                     <div v-else>
                         <p style="font-weight: bold; padding-bottom: 0px;">Notifications</p>
@@ -57,8 +57,8 @@
                 </div>
             </div>
             <div class="dropdown">
-                <i class="fa-solid fa-power-off" id="power-icon" style="color: var(--accent-light-color)"></i>
-                <div class="dropdown-menu">
+                <i @click="togglePowerDropdown" class="fa-solid fa-power-off" id="power-icon" style="color: var(--accent-light-color)"></i>
+                <div class="dropdown-menu" :class="{ 'show': isPowerDropdownToggled === true, 'hide': isPowerDropdownToggled === false }">
                     <a @click="handleShutdown">Shutdown</a>
                     <a @click="handleReboot">Reboot</a>
                 </div>
@@ -99,6 +99,26 @@ function handleDisconnect() {
 }
 
 const isRefreshing = ref(false);
+
+const isNotificationDropdownToggled = ref<boolean | null>(null);
+
+function toggleNotificationDropdown() {
+    if (isNotificationDropdownToggled.value === null) {
+        isNotificationDropdownToggled.value = true;
+    } else {
+        isNotificationDropdownToggled.value = !isNotificationDropdownToggled.value;
+    }
+}
+
+const isPowerDropdownToggled = ref<boolean | null>(null);
+
+function togglePowerDropdown() {
+    if (isPowerDropdownToggled.value === null) {
+        isPowerDropdownToggled.value = true;
+    } else {
+        isPowerDropdownToggled.value = !isPowerDropdownToggled.value;
+    }
+}
 
 const openNotificationId = ref("");
 const pulseNotification = ref(false);
@@ -331,7 +351,7 @@ a.disabled, p.disabled {
     width: 291px;
 }
 
-.dropdown:hover .dropdown-menu {
+.dropdown:hover .dropdown-menu:not(.hide), .dropdown-menu.show {
     max-height: 200px;
     padding: 10px 0;
     border-style: solid;
@@ -346,7 +366,7 @@ a.disabled, p.disabled {
     transition: text-shadow 0.3s ease;
 }
 
-.dropdown:hover i#notification-icon:not(.pulse-error) {
+.dropdown:hover i#notification-icon:not(.pulse-error), .dropdown-menu.show i#notification-icon:not(.pulse-error) {
     animation: rotate-shake 0.5s ease;
 }
 
