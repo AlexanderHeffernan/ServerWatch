@@ -14,6 +14,10 @@
                 <i class="fa-solid fa-gauge"></i>
                 <span :class="{ hidden: minimized }">Dashboard</span>
             </router-link>
+            <router-link to="/file-explorer" class="nav-link" active-class="active">
+                <i class="fa-solid fa-folder-open"></i>
+                <span :class="{ hidden: minimized }">File Explorer</span>
+            </router-link>
             <router-link to="/system" class="nav-link disabled" active-class="active">
                 <i class="fa-solid fa-server"></i>
                 <span :class="{ hidden: minimized }">System</span>
