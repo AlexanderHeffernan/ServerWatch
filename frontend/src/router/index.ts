@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import DashboardView from '../views/DashboardView.vue';
+import FileExplorerView from '../views/FileExplorerView.vue';
 import SettingsView from '../views/SettingsView.vue';
 
 const routes: Array<RouteRecordRaw> = [
@@ -7,6 +8,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/',
     name: 'dashboard',
     component: DashboardView
+  },
+  {
+    path: '/file-explorer',
+    name: 'file-explorer',
+    component: FileExplorerView
   },
   {
     path: '/settings',

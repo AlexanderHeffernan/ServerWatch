@@ -224,6 +224,11 @@ button:disabled {
     opacity: 0.6;
 }
 
+button i {
+    margin-right: 8px;
+    font-size: 16px;
+}
+
 .spinner {
     display: inline-block;
     width: 16px;

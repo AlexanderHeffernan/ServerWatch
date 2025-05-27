@@ -1,0 +1,84 @@
+<template>
+    <div class="file-explorer">
+        <div class="tool-bar">
+            <button class="btn">
+                <i class="fa-solid fa-folder-plus"></i>
+                <span>Create Folder</span>
+            </button>
+            <button class="btn">
+                <i class="fa-solid fa-file"></i>
+                <span>Create File</span>
+            </button>
+            <button class="btn">
+                <i class="fa-solid fa-upload"></i>
+                <span>Upload File</span>
+            </button>
+            <button class="btn">
+                <i class="fa-solid fa-download"></i>
+                <span>Download</span>
+            </button>
+            <button class="btn">
+                <i class="fa-solid fa-trash"></i>
+                <span>Delete</span>
+            </button>
+            <button class="btn">
+                <i class="fa-solid fa-rotate"></i>
+                <span>Refresh</span>
+            </button>
+        </div>
+        <div class="file-icons">
+            <div v-for="file in files" :key="file.name" class="file-item">
+                <i :class="file.icon"></i>
+                <span>{{ file.name }}</span>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+
+const files = ref([
+    { name: 'Document.txt', icon: 'fa-solid fa-file-alt' },
+    { name: 'Image.png', icon: 'fa-solid fa-file-image' },
+    { name: 'Video.mp4', icon: 'fa-solid fa-file-video' },
+    { name: 'Audio.mp3', icon: 'fa-solid fa-file-audio' },
+    { name: 'Archive.zip', icon: 'fa-solid fa-file-archive' },
+]);
+
+</script>
+
+<style scoped>
+.tool-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: var(--background-dark-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.file-icons {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 10px;
+}
+.file-item {
+    display: flex;
+    align-items: center;
+    margin: 5px;
+    padding: 10px;
+    background-color: var(--background-light-color);
+    border-radius: 5px;
+    width: 150px;
+}
+.file-item i {
+    margin-right: 10px;
+    font-size: 24px;
+    color: var(--text-color);
+}
+.file-item span {
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+</style>
