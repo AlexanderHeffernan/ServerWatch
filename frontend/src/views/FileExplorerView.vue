@@ -13,11 +13,11 @@
                 <i class="fa-solid fa-upload"></i>
                 <span>Upload File</span>
             </button>
-            <button class="btn">
+            <button class="btn" :disabled="!selectedFileName">
                 <i class="fa-solid fa-download"></i>
                 <span>Download</span>
             </button>
-            <button class="btn">
+            <button class="btn" :disabled="!selectedFileName">
                 <i class="fa-solid fa-trash"></i>
                 <span>Delete</span>
             </button>
@@ -27,7 +27,13 @@
             </button>
         </div>
         <div class="file-icons">
-            <div v-for="file in files" :key="file.name" class="file-item">
+            <div 
+                v-for="file in files" 
+                :key="file.name" 
+                class="file-item"
+                :class="{ selected: file.name === selectedFileName }"
+                @click="selectFile(file.name)"
+            >
                 <i :class="file.icon"></i>
                 <span>{{ file.name }}</span>
             </div>
@@ -45,6 +51,11 @@ const files = ref([
     { name: 'Audio.mp3', icon: 'fa-solid fa-file-audio' },
     { name: 'Archive.zip', icon: 'fa-solid fa-file-archive' },
 ]);
+
+const selectedFileName = ref('');
+const selectFile = (fileName: string) => {
+    selectedFileName.value = fileName;
+};
 
 </script>
 
@@ -70,6 +81,10 @@ const files = ref([
     background-color: var(--background-light-color);
     border-radius: 5px;
     width: 150px;
+}
+.file-item.selected {
+    background-color: var(--primary-color);
+    color: white;
 }
 .file-item i {
     margin-right: 10px;
