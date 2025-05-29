@@ -76,19 +76,20 @@ const selectFile = (fileName: string) => {
 .file-item {
     display: flex;
     align-items: center;
-    margin: 5px;
-    padding: 10px;
+    flex-direction: column;
+    margin: 10px;
+    padding: 20px;
     background-color: var(--background-light-color);
     border-radius: 5px;
-    width: 150px;
+    /* width: 150px; */
 }
 .file-item.selected {
     background-color: var(--primary-color);
     color: white;
 }
 .file-item i {
-    margin-right: 10px;
-    font-size: 24px;
+    margin-bottom: 20px;
+    font-size: 48px;
     color: var(--text-color);
 }
 .file-item span {
