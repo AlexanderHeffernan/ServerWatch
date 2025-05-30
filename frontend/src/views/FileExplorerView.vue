@@ -79,7 +79,7 @@ const selectFile = (fileName: string) => {
     flex-direction: column;
     margin: 10px;
     padding: 20px;
-    background-color: var(--background-light-color);
+    /*background-color: var(--background-light-color);*/
     border-radius: 5px;
     /* width: 150px; */
 }
