@@ -79,9 +79,8 @@ const selectFile = (fileName: string) => {
     flex-direction: column;
     margin: 10px;
     padding: 20px;
-    /*background-color: var(--background-light-color);*/
     border-radius: 5px;
-    /* width: 150px; */
+    cursor: pointer;
 }
 .file-item.selected {
     background-color: var(--primary-color);
@@ -95,6 +94,7 @@ const selectFile = (fileName: string) => {
 .file-item span {
     font-size: 14px;
     color: var(--text-color);
+    user-select: none;
 }
 
 </style>
