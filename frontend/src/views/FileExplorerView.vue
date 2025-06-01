@@ -63,9 +63,6 @@ const selectFile = (fileName: string) => {
 .tool-bar {
     display: flex;
     justify-content: space-between;
-    padding: 10px;
-    background-color: var(--background-dark-color);
-    border-bottom: 1px solid var(--border-color);
 }
 
 .file-icons {
