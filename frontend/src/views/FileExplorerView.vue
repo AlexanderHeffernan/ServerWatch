@@ -17,7 +17,7 @@
                 <i class="fa-solid fa-download"></i>
                 <span>Download</span>
             </button>
-            <button class="btn" :disabled="!selectedFileName">
+            <button class="btn" :disabled="!selectedFileName" @click="deleteSelection">
                 <i class="fa-solid fa-trash"></i>
                 <span>Delete</span>
             </button>
@@ -56,6 +56,13 @@ const selectedFileName = ref('');
 const selectFile = (fileName: string) => {
     selectedFileName.value = fileName;
 };
+
+function deleteSelection() {
+    if (selectedFileName.value) {
+        files.value = files.value.filter(file => file.name !== selectedFileName.value);
+        selectedFileName.value = '';
+    }
+}
 
 </script>
 
