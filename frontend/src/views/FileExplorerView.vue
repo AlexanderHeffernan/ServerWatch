@@ -1,7 +1,7 @@
 <template>
     <div class="file-explorer">
         <div class="tool-bar">
-            <button class="btn">
+            <button class="btn" @click="createNewFolder">
                 <i class="fa-solid fa-folder-plus"></i>
                 <span>Create Folder</span>
             </button>
@@ -62,6 +62,10 @@ function deleteSelection() {
         files.value = files.value.filter(file => file.name !== selectedFileName.value);
         selectedFileName.value = '';
     }
+}
+
+function createNewFolder() {
+    files.value.push({ name: 'New Folder', icon: 'fa-solid fa-folder' });
 }
 
 </script>
