@@ -12,12 +12,12 @@ I created ServerWatch after setting up a Raspberry Pi 5 as a personal projects s
 - Metrics: CPU usage, RAM usage, disk usage, CPU/component temperatures.
 - Secure access via IP address and password over HTTPS, built with a crate I built called [rusty-api](https://crates.io/crates/rusty-api).
 - Efficient Rust-based agent with minimal resource usage.
-- Static frontend hosted on [GitHub Pages](https://alexanderheffernan.github.io/ServerWatch/).
+- Static frontend hosted on [https://serverwatch.alexheffernan.dev](https://serverwatch.alexheffernan.dev).
 - Open-source, with one-command install/uninstall scripts.
 
 ## Installation
 ### 1. Deploy the Frontend
-The frontend is pre-deployed at [https://alexanderheffernan.github.io/ServerWatch/](https://alexanderheffernan.github.io/ServerWatch/). To run it locally:
+The frontend is pre-deployed at [https://serverwatch.alexheffernan.dev](https://serverwatch.alexheffernan.dev). To run it locally:
 
 ```bash
 # Ensure Node.js is installed
