@@ -1,9 +1,9 @@
-use tokio::time::{self, Duration};
 use crate::getters::get_temperature;
 use crate::push_notifications::send_alertzy_notification;
 use crate::shutdown;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::fs;
+use tokio::time::{self, Duration};
 
 #[derive(Serialize, Deserialize)]
 pub struct TempConfig {
@@ -14,29 +14,43 @@ pub struct TempConfig {
 }
 
 impl TempConfig {
+    pub fn valid(&self) -> bool {
+        (40..=150).contains(&self.warning_temp)
+            && (40..=150).contains(&self.shutdown_temp)
+            && self.warning_temp < self.shutdown_temp
+    }
+
     pub fn load_from_file(path: &str) -> Self {
-        match fs::read_to_string(path) {
-            Ok(data) => {
-                serde_json::from_str(&data).expect("Failed to parse config file")
-            }
-            Err(_) => {
-                // If the file doesn't exist or can't be read, create it with default values
-                eprintln!("Config file not found. Creating a new one with default values.");
-                let default_config = TempConfig {
+        match fs::read_to_string(path)
+            .ok()
+            .and_then(|data| serde_json::from_str::<Self>(&data).ok())
+            .filter(Self::valid)
+        {
+            Some(config) => config,
+            None => {
+                eprintln!("Missing or invalid temperature config; using safe defaults.");
+                TempConfig {
                     warning_temp: 75,
                     shutdown_temp: 85,
                     warnings_enabled: true,
                     shutdown_enabled: true,
-                };
-                default_config.save_to_file(path);
-                default_config
+                }
             }
         }
     }
 
-    pub fn save_to_file(&self, path: &str) {
-        let data = serde_json::to_string_pretty(self).expect("Failed to serialize config");
-        fs::write(path, data).expect("Failed to write config file");
+    pub fn save_to_file(&self, path: &str) -> std::io::Result<()> {
+        use std::io::Write;
+        let data = serde_json::to_string_pretty(self)?;
+        let parent = std::path::Path::new(path)
+            .parent()
+            .filter(|p| !p.as_os_str().is_empty())
+            .unwrap_or_else(|| std::path::Path::new("."));
+        let mut temporary = tempfile::NamedTempFile::new_in(parent)?;
+        temporary.write_all(data.as_bytes())?;
+        temporary.as_file().sync_all()?;
+        temporary.persist(path).map_err(|e| e.error)?;
+        Ok(())
     }
 }
 
@@ -57,7 +71,7 @@ pub async fn monitor_temperature() {
         let temperature = get_temperature();
         if config.shutdown_enabled && temperature >= config.shutdown_temp {
             handle_shutdown(temperature).await;
-            break; // Exit the loop after shutdown
+            // Retry on the next tick if the host did not actually shut down.
         } else if config.warnings_enabled && temperature >= config.warning_temp {
             if !warning_sent {
                 handle_warning(temperature).await;
@@ -70,24 +84,24 @@ pub async fn monitor_temperature() {
 }
 
 async fn handle_shutdown(temperature: u64) {
-    eprintln!("Critical temperature reached: {}°C. Shutting down...", temperature);
-    if let Err(e) = send_alertzy_notification(
-        "Critical Temperature Reached",
-        &format!("The system temperature reached {}°C. Shutting down to prevent damage.", temperature),
-        1
-    ).await {
-        eprintln!("Failed to send shutdown notification: {}", e);
-    }
-    
+    eprintln!(
+        "Critical temperature reached: {}°C. Shutting down...",
+        temperature
+    );
     shutdown().await;
 }
 
 async fn handle_warning(temperature: u64) {
     if let Err(e) = send_alertzy_notification(
         "High Temperature Warning",
-        &format!("The system temperature is at {}°C. Please check the system.", temperature),
-        1
-    ).await {
+        &format!(
+            "The system temperature is at {}°C. Please check the system.",
+            temperature
+        ),
+        1,
+    )
+    .await
+    {
         eprintln!("Failed to send warning notification: {}", e);
     }
 }

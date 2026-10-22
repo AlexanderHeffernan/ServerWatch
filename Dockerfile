@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine AS build
+FROM node:24-alpine AS build
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ RUN npm ci
 # Copy frontend source
 COPY frontend/ ./
 
-# Build the app (outputs to /dist due to vue.config.js)
+# Build the app (Vite outputs one level up, to /dist)
 RUN npm run build
 
 # Production stage - serve with nginx

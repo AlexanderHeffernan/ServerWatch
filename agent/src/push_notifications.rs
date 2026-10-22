@@ -3,32 +3,42 @@
  */
 use reqwest::Client;
 use serde::Serialize;
-use serde_json;
 use std::env;
 
 #[derive(Serialize)]
 struct AlertzyPayload {
-    accountKey: String,
+    #[serde(rename = "accountKey")]
+    account_key: String,
     title: String,
     message: String,
     priority: i32,
 }
 
-pub async fn send_alertzy_notification(title: &str, message: &str, priority: i32) -> Result<(), String> {
+pub async fn send_alertzy_notification(
+    title: &str,
+    message: &str,
+    priority: i32,
+) -> Result<(), String> {
     // Check if the SERVERWATCH_ALERTZY_KEY environment variable is set
     let alertzy_key = match env::var("SERVERWATCH_ALERTZY_KEY") {
-        Ok(key) => key,
-        Err(_) => return Err("SERVERWATCH_ALERTZY_KEY environment variable is not set.".to_string()),
+        Ok(key) if !key.trim().is_empty() => key,
+        _ => {
+            return Err("SERVERWATCH_ALERTZY_KEY environment variable is not set.".to_string());
+        }
     };
 
     let payload = AlertzyPayload {
-        accountKey: alertzy_key,
+        account_key: alertzy_key,
         title: title.to_string(),
         message: message.to_string(),
         priority,
     };
 
-    let response = Client::new()
+    let response = Client::builder()
+        .connect_timeout(std::time::Duration::from_secs(1))
+        .timeout(std::time::Duration::from_secs(2))
+        .build()
+        .map_err(|_| "Failed to create notification client".to_string())?
         .post("https://alertzy.app/send")
         .form(&payload)
         .send()
@@ -46,6 +56,9 @@ pub async fn send_alertzy_notification(title: &str, message: &str, priority: i32
             Err(format!("Alertzy API error: {:?}", json["error"]))
         }
     } else {
-        Err(format!("Alertzy request failed with status: {}", response.status()))
+        Err(format!(
+            "Alertzy request failed with status: {}",
+            response.status()
+        ))
     }
 }

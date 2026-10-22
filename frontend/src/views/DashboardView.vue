@@ -56,7 +56,6 @@
 <script setup lang="ts">
 import { inject, computed } from 'vue';
 import { serverConnection } from '../models/ServerConnection';
-import { useRouter } from 'vue-router';
 
 const isMoving = inject('isSidebarMoving');
 

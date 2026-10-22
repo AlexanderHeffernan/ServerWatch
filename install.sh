@@ -1,89 +1,97 @@
 #!/bin/bash
+set -euo pipefail
+umask 077
 
-# Exit on any error
-set -e
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m' # No Color
-
-echo -e "${GREEN}Starting ServerWatch Agent installation...${NC}"
-
-# Check for required tools
-command -v curl >/dev/null 2>&1 || { echo -e "${RED}curl is required. Please install it (e.g., 'sudo apt install curl').${NC}"; exit 1; }
-command -v openssl >/dev/null 2>&1 || { echo -e "${RED}OpenSSL is required. Please install it (e.g., 'sudo apt install openssl').${NC}"; exit 1; }
-
-# Prompt for password
-echo "Please enter the password for ServerWatch Agent:"
-read -s SERVERWATCH_PASSWORD
-if [ -z "$SERVERWATCH_PASSWORD" ]; then
-    echo -e "${RED}Password cannot be empty. Exiting.${NC}"
+# Build on the target host (or pass a binary built for its architecture).
+# The historical agent/bin binary implements the old, unsafe wire protocol.
+BINARY="${1:-$(dirname "$(readlink -f "$0")")/agent/target/release/ServerWatch-Agent}"
+if [ ! -f "$BINARY" ]; then
+    echo "Build the reviewed source first: cargo build --release --locked --manifest-path agent/Cargo.toml"
+    echo "Usage: ./install.sh /path/to/new/ServerWatch-Agent"
     exit 1
 fi
-
-# Prompt for alertzy account key
-echo "Please enter your Alertzy account key:"
-read -s SERVERWATCH_ALERTZY_KEY
-if [ -z "$SERVERWATCH_ALERTZY_KEY" ]; then
-    echo -e "${RED}Alertzy account key cannot be empty. Exiting.${NC}"
+if systemctl cat serverwatch-agent.service >/dev/null 2>&1; then
+    echo "Existing service detected. Follow the upgrade instructions in readme.md; this installer is for new installs."
     exit 1
 fi
+for tool in openssl sudo visudo useradd install; do
+    command -v "$tool" >/dev/null || { echo "$tool is required"; exit 1; }
+done
+read -r -s -p "Administrator password (use a unique random secret): " PASSWORD
+echo
+[ -n "${PASSWORD//[[:space:]]/}" ] || { echo "Password cannot be empty"; exit 1; }
+read -r -s -p "Alertzy account key (optional): " ALERTZY_KEY
+echo
 
-# Set install directory
-INSTALL_DIR="$HOME/ServerWatch-agent"
-mkdir -p "$INSTALL_DIR"
-cd "$INSTALL_DIR"
+STAGING=$(mktemp -d)
+trap 'rm -rf "$STAGING"' EXIT
+# Quote EnvironmentFile values without shell evaluation or systemd specifier expansion.
+write_env() {
+    local value=${2//\\/\\\\}
+    value=${value//\"/\\\"}
+    printf '%s="%s"\n' "$1" "$value"
+}
+{
+    write_env SERVERWATCH_PASSWORD "$PASSWORD"
+    write_env SERVERWATCH_ALERTZY_KEY "$ALERTZY_KEY"
+    write_env SERVERWATCH_BIND "127.0.0.1:49160"
+    write_env SERVERWATCH_ALLOWED_ORIGINS "https://serverwatch.alexheffernan.dev"
+} > "$STAGING/agent.env"
+unset PASSWORD ALERTZY_KEY
 
-# Download the pre-built binary
-echo "Downloading ServerWatch-Agent binary..."
-curl -sSL -o ServerWatch-Agent https://raw.githubusercontent.com/AlexanderHeffernan/ServerWatch/main/agent/bin/ServerWatch-Agent
-chmod +x ServerWatch-Agent
-
-# Generate unique self-signed certificate and key
-if [ ! -f "serverwatch.crt" ] || [ ! -f "serverwatch.key" ]; then
-    echo "Generating self-signed certificate and key..."
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-        -keyout serverwatch.key \
-        -out serverwatch.crt \
-        -subj "/C=US/ST=YourState/L=YourCity/O=ServerWatch/OU=Agent/CN=$(hostname)" \
-        -addext "subjectAltName=DNS:$(hostname)"
-    chmod 600 serverwatch.crt serverwatch.key
+if id serverwatch >/dev/null 2>&1; then
+    if [ "$(id -u serverwatch)" -eq 0 ] || [ "$(id -nG serverwatch)" != serverwatch ] || \
+        [ "$(getent passwd serverwatch | cut -d: -f6-)" != /var/lib/serverwatch:/usr/sbin/nologin ]; then
+        echo "Existing serverwatch account is not the isolated service account; review it before installing."
+        exit 1
+    fi
+else
+    sudo useradd --system --user-group --home-dir /var/lib/serverwatch --shell /usr/sbin/nologin serverwatch
 fi
+sudo install -d -o root -g root -m 755 /opt/serverwatch
+sudo install -o root -g root -m 755 "$BINARY" /opt/serverwatch/ServerWatch-Agent
+sudo install -d -o root -g serverwatch -m 750 /etc/serverwatch
+sudo install -o root -g root -m 600 "$STAGING/agent.env" /etc/serverwatch/agent.env
+sudo install -d -o serverwatch -g serverwatch -m 700 /var/lib/serverwatch
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout "$STAGING/serverwatch.key" -out "$STAGING/serverwatch.crt" \
+    -subj "/CN=$(hostname)" -addext "subjectAltName=DNS:$(hostname)"
+sudo install -o root -g serverwatch -m 640 "$STAGING/serverwatch.key" "$STAGING/serverwatch.crt" /etc/serverwatch/
+sudo ln -s /etc/serverwatch/serverwatch.key /var/lib/serverwatch/serverwatch.key
+sudo ln -s /etc/serverwatch/serverwatch.crt /var/lib/serverwatch/serverwatch.crt
 
-# Set up systemd service
-SERVICE_FILE="/etc/systemd/system/serverwatch-agent.service"
-echo "Configuring systemd service..."
-sudo bash -c "cat > $SERVICE_FILE" <<EOL
+# No general-purpose sudo, shell, or argument wildcards. Validate before installing.
+echo 'serverwatch ALL=(root) NOPASSWD: /usr/sbin/shutdown -h now, /usr/sbin/reboot ""' > "$STAGING/serverwatch-power"
+sudo visudo -cf "$STAGING/serverwatch-power"
+sudo install -o root -g root -m 440 "$STAGING/serverwatch-power" /etc/sudoers.d/serverwatch-power
+cat > "$STAGING/serverwatch-agent.service" <<'EOF'
 [Unit]
 Description=ServerWatch Agent
 After=network.target
 
 [Service]
-ExecStart=$INSTALL_DIR/ServerWatch-Agent
-WorkingDirectory=$INSTALL_DIR
-Environment="SERVERWATCH_PASSWORD=$SERVERWATCH_PASSWORD"
-Environment="SERVERWATCH_ALERTZY_KEY=$SERVERWATCH_ALERTZY_KEY"
-Restart=always
-User=$(whoami)
+ExecStart=/opt/serverwatch/ServerWatch-Agent
+WorkingDirectory=/var/lib/serverwatch
+EnvironmentFile=/etc/serverwatch/agent.env
+User=serverwatch
+Group=serverwatch
+Restart=on-failure
+RestartSec=5
+UMask=0077
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/serverwatch
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+# NoNewPrivileges is deliberately not enabled: the two exact sudo power commands need setuid.
 
 [Install]
 WantedBy=multi-user.target
-EOL
-
-# Reload and enable service
+EOF
+sudo install -o root -g root -m 644 "$STAGING/serverwatch-agent.service" /etc/systemd/system/serverwatch-agent.service
 sudo systemctl daemon-reload
-sudo systemctl enable serverwatch-agent.service
-sudo systemctl start serverwatch-agent.service
-
-# Verify it's running
-if sudo systemctl is-active serverwatch-agent.service >/dev/null; then
-    echo -e "${GREEN}ServerWatch Agent installed and running at https://$(hostname):49160/metrics${NC}"
-    echo "Default password is 'Password123'. Test with:"
-    echo "curl --insecure https://127.0.0.1:49160/metrics?password=Password123"
-else
-    echo -e "${RED}Failed to start ServerWatch Agent. Check logs with 'journalctl -u serverwatch-agent.service'${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}Installation complete! Visit https://alexanderheffernan.github.io/ServerWatch/ to connect.${NC}"
+sudo systemctl enable --now serverwatch-agent.service
+echo "Installed with loopback-only HTTPS. Configure private-network/proxy access and trusted TLS per readme.md before connecting."

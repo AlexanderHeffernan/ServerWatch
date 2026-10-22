@@ -37,6 +37,11 @@ echo "Reloading systemd daemon..."
 sudo systemctl daemon-reload
 
 # Remove the install directory
+if [ -d /opt/serverwatch ]; then
+    sudo rm -rf /opt/serverwatch /etc/serverwatch /var/lib/serverwatch
+    sudo rm -f /etc/sudoers.d/serverwatch-power
+    # Keep the locked service account so existing file ownership cannot be reassigned.
+fi
 if [ -d "$INSTALL_DIR" ]; then
     echo "Removing installation directory $INSTALL_DIR..."
     rm -rf "$INSTALL_DIR"
@@ -49,11 +54,6 @@ if systemctl list-units --all | grep -q "$SERVICE_NAME"; then
     echo -e "${RED}Warning: $SERVICE_NAME still appears in systemd. Check 'systemctl list-units --all'.${NC}"
 else
     echo -e "${GREEN}Service $SERVICE_NAME successfully removed from systemd.${NC}"
-fi
-
-if ps aux | grep -E "ServerWatch-Agent" | grep -v grep >/dev/null 2>&1; then
-    echo -e "${RED}Warning: ServerWatch-Agent process is still running. Killing it...${NC}"
-    pkill -f "ServerWatch-Agent" || echo "Failed to kill process. Please check manually."
 fi
 
 echo -e "${GREEN}Uninstallation complete!${NC}"

@@ -181,18 +181,16 @@ const isShutdownConfirmDialogVisible = ref(false);
 const isRebootConfirmDialogVisible = ref(false);
 
 function handleShutdown() { isShutdownConfirmDialogVisible.value = true; }
-function confirmShutdown() {
+async function confirmShutdown() {
     isShutdownConfirmDialogVisible.value = false;
-    serverConnection.value?.shutdown();
-    handleDisconnect();
+    if (await serverConnection.value?.shutdown()) { handleDisconnect(); }
 }
 function cancelShutdown() { isShutdownConfirmDialogVisible.value = false; }
 
 function handleReboot() { isRebootConfirmDialogVisible.value = true; }
-function confirmReboot() {
+async function confirmReboot() {
     isRebootConfirmDialogVisible.value = false;
-    serverConnection.value?.reboot();
-    handleDisconnect();
+    if (await serverConnection.value?.reboot()) { handleDisconnect(); }
 }
 function cancelReboot() { isRebootConfirmDialogVisible.value = false; }
 
