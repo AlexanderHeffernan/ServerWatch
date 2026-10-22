@@ -13,24 +13,14 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { savedIp, savedPassword, savedDemoMode, initiateServerConnection, initiateDemoConnection } from '../models/ServerConnection';
+import { requestServer } from '../models/api';
 
 const reconnectInterval = ref<number | null>(null);
 
 async function attemptReconnect() {
     if (savedIp.value && savedPassword.value && !savedDemoMode.value) {
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // Prevents hanging
-
-            const response = await fetch(`https://${savedIp.value}/test-connection?password=${savedPassword.value}`, {
-                method: 'GET',
-                signal: controller.signal,
-                headers: {
-                    "ngrok-skip-browser-warning": "true" // Bypass ngrok’s free tier warning
-                }
-            });
-
-            clearTimeout(timeoutId);
+            const response = await requestServer(savedIp.value, savedPassword.value, '/test-connection');
 
             if (!response.ok) {
                 throw new Error('Failed to connect to the server.');

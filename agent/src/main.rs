@@ -1,63 +1,173 @@
-mod models;
 mod getters;
+mod models;
 mod push_notifications;
 mod temperature_monitor;
 
-use push_notifications::send_alertzy_notification;
-use rusty_api::{Api, Routes, Cors, HttpResponse};
-use actix_web::{web, http};
-use std::{env, process::Command, collections::HashMap};
+use actix_cors::Cors;
+use actix_governor::{Governor, GovernorConfigBuilder};
+use actix_web::{
+    App, FromRequest, HttpRequest, HttpResponse, HttpServer, dev::Payload, http::header, web,
+};
+use std::{
+    collections::HashMap,
+    env,
+    future::{Ready, ready},
+    io,
+    process::Command,
+    sync::RwLock,
+    time::Duration,
+};
+use subtle::ConstantTimeEq;
 use temperature_monitor::TempConfig;
 
-fn main() {
-    // Spawn a background task to monitor temperature
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    rt.block_on(async {
-        tokio::spawn(async {
-            temperature_monitor::monitor_temperature().await;
-        });
-    });
-    
-    // Check if the SERVERWATCH_PASSWORD environment variable is set
-    let password: &'static str = Box::leak(
-        env::var("SERVERWATCH_PASSWORD")
-            .expect("SERVERWATCH_PASSWORD must be set.")    
-            .into_boxed_str()
-    );
-    
-    let routes = Routes::new()
-        .add_route_with_password("/metrics", get_metrics, password)
-        .add_route_with_password("/test-connection", test_connection, password)
-        .add_route_with_password("/shutdown", shutdown, password)
-        .add_route_with_password("/reboot", reboot, password)
-        .add_route_with_password("/set-temp-config", set_temp_config, password)
-        .add_route_with_password("/get-temp-config", get_temp_config, password);
-
-    Api::new()
-        .certs("serverwatch.crt", "serverwatch.key")
-        .rate_limit(3, 10)
-        .bind("0.0.0.0", 49160)
-        .configure_routes(routes)
-        .configure_cors(|| {
-            Cors::default()
-                .allowed_methods(vec!["GET", "POST", "PUT"])
-                .allow_any_origin()
-                .allowed_header(http::header::CONTENT_TYPE)
-                .allowed_header("ngrok-skip-browser-warning")
-        })
-        .start();
+struct Credentials {
+    admin: String,
+    read: Option<String>,
 }
 
-async fn get_metrics() -> HttpResponse {
+// Explicit header authentication only: never accept cookies or URL credentials.
+struct Auth;
+impl FromRequest for Auth {
+    type Error = actix_web::Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+    fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
+        let credentials = req.app_data::<web::Data<Credentials>>().unwrap();
+        let token = req
+            .headers()
+            .get(header::AUTHORIZATION)
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "));
+        let matches = |secret: &str| {
+            token.is_some_and(|token| bool::from(token.as_bytes().ct_eq(secret.as_bytes())))
+        };
+        let admin = matches(&credentials.admin);
+        let read = credentials.read.as_deref().is_some_and(matches);
+        let mutation = req.method() != actix_web::http::Method::GET
+            && req.method() != actix_web::http::Method::HEAD;
+        ready(if admin || (read && !mutation) {
+            Ok(Auth)
+        } else if read {
+            Err(actix_web::error::ErrorForbidden(
+                "Administrator credential required",
+            ))
+        } else {
+            Err(actix_web::error::ErrorUnauthorized(
+                "Bearer credential required",
+            ))
+        })
+    }
+}
+
+fn routes(cfg: &mut web::ServiceConfig) {
+    cfg.service(web::resource("/metrics").route(web::get().to(get_metrics)))
+        .service(web::resource("/test-connection").route(web::get().to(test_connection)))
+        .service(web::resource("/shutdown").route(web::post().to(shutdown_route)))
+        .service(web::resource("/reboot").route(web::post().to(reboot)))
+        .service(web::resource("/set-temp-config").route(web::put().to(set_temp_config)))
+        .service(web::resource("/get-temp-config").route(web::get().to(get_temp_config)));
+}
+
+fn cors(origins: &[String]) -> Cors {
+    let mut cors = Cors::default()
+        .allowed_methods(vec!["GET", "POST", "PUT"])
+        .allowed_headers(vec![
+            header::AUTHORIZATION,
+            header::CONTENT_TYPE,
+            header::HeaderName::from_static("ngrok-skip-browser-warning"),
+        ]);
+    for origin in origins {
+        cors = cors.allowed_origin(origin);
+    }
+    cors
+}
+
+type MetricsCache = RwLock<Option<models::Metrics>>;
+struct PowerExecutor(fn(bool) -> io::Result<std::process::Output>);
+struct ConfigPath(String);
+
+#[actix_web::main]
+async fn main() -> io::Result<()> {
+    let admin = env::var("SERVERWATCH_PASSWORD")
+        .ok()
+        .filter(|v| !v.trim().is_empty())
+        .expect("Nonempty SERVERWATCH_PASSWORD must be set");
+    let read = env::var("SERVERWATCH_READ_PASSWORD").ok();
+    assert!(
+        read.as_ref()
+            .is_none_or(|v| !v.trim().is_empty() && v != &admin),
+        "Read password must be nonempty and different from admin password"
+    );
+    let credentials = web::Data::new(Credentials { admin, read });
+    let origins: Vec<String> = env::var("SERVERWATCH_ALLOWED_ORIGINS")
+        .unwrap_or_else(|_| "https://serverwatch.alexheffernan.dev".into())
+        .split(',')
+        .map(|v| v.trim().to_owned())
+        .filter(|v| !v.is_empty())
+        .collect();
+    for origin in &origins {
+        let url = reqwest::Url::parse(origin).expect("Invalid allowed origin");
+        assert!(
+            matches!(url.scheme(), "https" | "http")
+                && url.origin().ascii_serialization() == *origin,
+            "Configure exact origins without paths or trailing slashes"
+        );
+    }
+    use rustls::pki_types::{CertificateDer, PrivateKeyDer, pem::PemObject};
+    let certs = CertificateDer::pem_file_iter("serverwatch.crt")
+        .map_err(io::Error::other)?
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(io::Error::other)?;
+    let key = PrivateKeyDer::from_pem_file("serverwatch.key").map_err(io::Error::other)?;
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .ok();
+    let tls = rustls::ServerConfig::builder()
+        .with_no_client_auth()
+        .with_single_cert(certs, key)
+        .map_err(io::Error::other)?;
+    let cache = web::Data::new(RwLock::new(None));
+    let sampler = cache.clone();
+    tokio::spawn(async move {
+        loop {
+            if let Ok(metrics) = web::block(sample_metrics).await {
+                *sampler.write().unwrap() = Some(metrics);
+            }
+            tokio::time::sleep(Duration::from_secs(2)).await;
+        }
+    });
+    tokio::spawn(temperature_monitor::monitor_temperature());
+    let bind = env::var("SERVERWATCH_BIND").unwrap_or_else(|_| "127.0.0.1:49160".into());
+    let governor = GovernorConfigBuilder::default()
+        .seconds_per_request(3)
+        .burst_size(10)
+        .finish()
+        .unwrap();
+    HttpServer::new(move || {
+        App::new()
+            .app_data(credentials.clone())
+            .app_data(cache.clone())
+            .app_data(web::Data::new(PowerExecutor(execute_power)))
+            .app_data(web::Data::new(ConfigPath("config.json".into())))
+            .app_data(web::JsonConfig::default().limit(1024))
+            .wrap(
+                actix_web::middleware::DefaultHeaders::new()
+                    .add((header::CACHE_CONTROL, "no-store")),
+            )
+            .wrap(Governor::new(&governor))
+            .wrap(cors(&origins))
+            .configure(routes)
+    })
+    .bind_rustls_0_23(bind, tls)?
+    .run()
+    .await
+}
+
+fn sample_metrics() -> models::Metrics {
     use getters::*;
-    use models::Metrics;
-
     let mut sys = sysinfo::System::new_all();
+    std::thread::sleep(Duration::from_secs(1));
     sys.refresh_all();
-    std::thread::sleep(std::time::Duration::from_millis(1000));
-    sys.refresh_all();
-
-    HttpResponse::Ok().json(Metrics {
+    models::Metrics {
         total_cpu_usage: get_total_cpu_usage(&sys),
         individual_cpu_usage: get_individual_cpu_usage(&sys),
         memory_usage: sys.used_memory(),
@@ -65,119 +175,107 @@ async fn get_metrics() -> HttpResponse {
         cpu_temperature: get_temperature(),
         individual_temperatures: get_individual_temperatures(),
         disks: get_disks(),
-    })
+    }
 }
 
-async fn test_connection() -> HttpResponse {
-    use getters::get_server_name;
+async fn get_metrics(_: Auth, cache: web::Data<MetricsCache>) -> HttpResponse {
+    match cache.read().unwrap().as_ref() {
+        Some(metrics) => HttpResponse::Ok().json(metrics),
+        None => HttpResponse::ServiceUnavailable().body("Metrics warming up; retry shortly"),
+    }
+}
 
-    HttpResponse::Ok().json(HashMap::from([("server_name", get_server_name())]))
+async fn test_connection(_: Auth) -> HttpResponse {
+    HttpResponse::Ok().json(HashMap::from([("server_name", getters::get_server_name())]))
+}
+
+// Power execution is passed separately so failure-path tests cannot invoke host commands.
+async fn notify_then_power<N, P, F>(notification: N, power: P) -> HttpResponse
+where
+    N: std::future::Future<Output = Result<(), String>>,
+    P: FnOnce() -> F,
+    F: std::future::Future<Output = HttpResponse>,
+{
+    match tokio::time::timeout(Duration::from_secs(2), notification).await {
+        Ok(Ok(())) => {}
+        _ => eprintln!("Power notification failed or timed out; proceeding with power action"),
+    }
+    power().await
+}
+
+fn execute_power(reboot: bool) -> io::Result<std::process::Output> {
+    let mut command = Command::new("/usr/bin/sudo");
+    command.arg("-n");
+    if reboot {
+        command.arg("/usr/sbin/reboot");
+    } else {
+        command.args(["/usr/sbin/shutdown", "-h", "now"]);
+    }
+    command.output()
+}
+
+async fn power(
+    reboot: bool,
+    executor: fn(bool) -> io::Result<std::process::Output>,
+) -> HttpResponse {
+    let result = web::block(move || executor(reboot)).await;
+    match result {
+        Ok(Ok(output)) if output.status.success() => {
+            HttpResponse::Ok().body("Power action initiated")
+        }
+        _ => {
+            eprintln!("Power command failed; check service permissions");
+            HttpResponse::InternalServerError().body("Power action failed")
+        }
+    }
 }
 
 pub async fn shutdown() -> HttpResponse {
-    // Send a notification before shutting down
-    if let Err(e) = send_alertzy_notification(
-        "Server Shutdown Initiated",
-        "The server is shutting down now. If you do you receive a follow-up error alert, then shutdown was successful.",
-        2
-    ).await { 
-        eprintln!("Failed to send shutdown notification: {}", e); 
-        return HttpResponse::InternalServerError().body(format!("Failed to send shutdown notification: {}", e));
-    }
-
-    // Run the shutdown command in a blocking context
-    let result = web::block(|| {
-        Command::new("sudo")
-            .arg("/usr/sbin/shutdown")
-            .arg("-h")
-            .arg("now")
-            .output()
-    })
-    .await;
-
-    match result {
-        Ok(Ok(output)) => {
-            if output.status.success() {
-                HttpResponse::Ok().body("Shutting down now...")
-            } else {
-                let error = String::from_utf8_lossy(&output.stderr).to_string();
-                HttpResponse::InternalServerError().body(format!("Failed to shut down: {}", error))
-            }
-        }
-        Ok(Err(e)) => HttpResponse::InternalServerError().body(format!("Error executing shutdown command: {}", e)),
-        Err(e) => HttpResponse::InternalServerError().body(format!("Blocking task failed: {}", e)),
-    }
+    shutdown_with(execute_power).await
+}
+async fn shutdown_with(executor: fn(bool) -> io::Result<std::process::Output>) -> HttpResponse {
+    notify_then_power(
+        push_notifications::send_alertzy_notification(
+            "Server Shutdown Initiated",
+            "The server is shutting down now.",
+            2,
+        ),
+        || power(false, executor),
+    )
+    .await
+}
+async fn shutdown_route(_: Auth, executor: web::Data<PowerExecutor>) -> HttpResponse {
+    shutdown_with(executor.0).await
+}
+async fn reboot(_: Auth, executor: web::Data<PowerExecutor>) -> HttpResponse {
+    notify_then_power(
+        push_notifications::send_alertzy_notification(
+            "Server Reboot Initiated",
+            "The server is rebooting now.",
+            2,
+        ),
+        || power(true, executor.0),
+    )
+    .await
 }
 
-async fn reboot() -> HttpResponse {
-    // Send a notification before rebooting
-    if let Err(e) = send_alertzy_notification(
-        "Server Reboot Initiated",
-        "The server is rebooting now. If you do you receive a follow-up error alert, then reboot was successful.",
-        2
-    ).await { 
-        eprintln!("Failed to send reboot notification: {}", e); 
-        return HttpResponse::InternalServerError().body(format!("Failed to send reboot notification: {}", e));
+async fn set_temp_config(
+    _: Auth,
+    config: web::Json<TempConfig>,
+    path: web::Data<ConfigPath>,
+) -> HttpResponse {
+    if !config.valid() {
+        return HttpResponse::BadRequest()
+            .body("Temperatures must be 40–150°C and warning must be below shutdown");
     }
-
-    // Run the reboot command in a blocking context
-    let result = web::block(|| {
-        Command::new("sudo")
-            .arg("/usr/sbin/reboot")
-            .output()
-    })
-    .await;
-
-    match result {
-        Ok(Ok(output)) => {
-            if output.status.success() {
-                HttpResponse::Ok().body("Rebooting now...")
-            } else {
-                let error = String::from_utf8_lossy(&output.stderr).to_string();
-                HttpResponse::InternalServerError().body(format!("Failed to reboot: {}", error))
-            }
-        }
-        Ok(Err(e)) => HttpResponse::InternalServerError().body(format!("Error executing reboot command: {}", e)),
-        Err(e) => HttpResponse::InternalServerError().body(format!("Blocking task failed: {}", e)),
+    match config.save_to_file(&path.0) {
+        Ok(()) => HttpResponse::Ok().body("Temperature settings updated successfully"),
+        Err(_) => HttpResponse::InternalServerError().body("Could not save temperature settings"),
     }
 }
-
-async fn set_temp_config(query: web::Query<HashMap<String, String>>) -> HttpResponse {
-    // Extract query parameters
-    let warning_temp = query.get("warning_temp").and_then(|v| v.parse::<u64>().ok());
-    let shutdown_temp = query.get("shutdown_temp").and_then(|v| v.parse::<u64>().ok());
-    let warnings_enabled = query.get("warnings_enabled").and_then(|v| v.parse::<bool>().ok());
-    let shutdown_enabled = query.get("shutdown_enabled").and_then(|v| v.parse::<bool>().ok());
-
-    // Validate that all required parameters are present
-    if let (Some(warning_temp), Some(shutdown_temp), Some(warnings_enabled), Some(shutdown_enabled)) =
-        (warning_temp, shutdown_temp, warnings_enabled, shutdown_enabled)
-    {
-        // Log the received configuration
-        println!(
-            "Received new config: warning_temp={}, shutdown_temp={}, warnings_enabled={}, shutdown_enabled={}",
-            warning_temp, shutdown_temp, warnings_enabled, shutdown_enabled
-        );
-
-        // Save the configuration to the file
-        let new_config = TempConfig {
-            warning_temp,
-            shutdown_temp,
-            warnings_enabled,
-            shutdown_enabled,
-        };
-        new_config.save_to_file("config.json");
-
-        HttpResponse::Ok().body("Temperature settings updated successfully")
-    } else {
-        HttpResponse::BadRequest().body("Missing or invalid query parameters")
-    }
+async fn get_temp_config(_: Auth, path: web::Data<ConfigPath>) -> HttpResponse {
+    HttpResponse::Ok().json(TempConfig::load_from_file(&path.0))
 }
 
-async fn get_temp_config() -> HttpResponse {
-    // Load the configuration from the file
-    let config = TempConfig::load_from_file("config.json");
-
-    // Return the configuration as JSON
-    HttpResponse::Ok().json(config)
-}
+#[cfg(test)]
+mod tests;

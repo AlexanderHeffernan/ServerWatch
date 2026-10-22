@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import { notificationsManager } from './NotificationsManager';
+import { requestServer } from './api';
 
 class ServerConnection {
     private static instance: ServerConnection | null = null;
@@ -100,18 +101,7 @@ class ServerConnection {
         }
 
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // Prevents hanging
-
-            const response = await fetch(`https://${this._address}/metrics?password=${this._password}`, {
-                method: 'GET',
-                signal: controller.signal,
-                headers: {
-                    "ngrok-skip-browser-warning": "true" // Bypass ngrok’s free tier warning
-                }
-            });
-
-            clearTimeout(timeoutId);
+            const response = await requestServer(this._address, this._password, '/metrics');
             if (!response.ok) { throw new Error('Failed to fetch metrics from server.'); }
             this._metrics = await response.json();
         } catch (error) {
@@ -135,34 +125,23 @@ class ServerConnection {
 
     public async setTempConfig(warningTemp: number, shutdownTemp: number, warningsEnabled: boolean, shutdownEnabled: boolean) {
         if (this._demoMode) return;
-        this._tempConfig = {
+        const config = {
             "warning_temp": warningTemp,
             "shutdown_temp": shutdownTemp,
             "warnings_enabled": warningsEnabled,
             "shutdown_enabled": shutdownEnabled,
         };
 
-        console.log('Setting temp config:', this._tempConfig);
-
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // Prevents hanging
-
-            const response = await fetch(`https://${this._address}/set-temp-config?password=${this._password}&warning_temp=${warningTemp}&shutdown_temp=${shutdownTemp}&warnings_enabled=${warningsEnabled}&shutdown_enabled=${shutdownEnabled}`, {
-                method: 'GET',
-                signal: controller.signal,
-                headers: {
-                    "ngrok-skip-browser-warning": "true" // Bypass ngrok’s free tier warning
-                }
-            });
-
-            clearTimeout(timeoutId);
+            const response = await requestServer(this._address, this._password, '/set-temp-config', 'PUT', config);
 
             if (!response.ok) {
                 throw new Error('Failed to set temp config on server.');
             }
+            this._tempConfig = config;
         } catch (error) {
             console.error('Error setting temp config:', error);
+            notificationsManager.value?.addNotification('Settings not saved', 'Check temperature limits and use an administrator password to change settings.', 'error');
         }
     }
 
@@ -178,18 +157,7 @@ class ServerConnection {
         }
 
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // Prevents hanging
-
-            const response = await fetch(`https://${this._address}/get-temp-config?password=${this._password}`, {
-                method: 'GET',
-                signal: controller.signal,
-                headers: {
-                    "ngrok-skip-browser-warning": "true" // Bypass ngrok’s free tier warning
-                }
-            });
-
-            clearTimeout(timeoutId);
+            const response = await requestServer(this._address, this._password, '/get-temp-config');
 
             if (!response.ok) {
                 throw new Error('Failed to fetch metrics from server.');
@@ -208,53 +176,35 @@ class ServerConnection {
     }
 
     public async shutdown() {
-        if (this._demoMode) return;
+        if (this._demoMode) return true;
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // Prevents hanging
-
-            const response = await fetch(`https://${this._address}/shutdown?password=${this._password}`, {
-                method: 'GET',
-                signal: controller.signal,
-                headers: {
-                    "ngrok-skip-browser-warning": "true" // Bypass ngrok’s free tier warning
-                }
-            });
-
-            clearTimeout(timeoutId);
+            const response = await requestServer(this._address, this._password, '/shutdown', 'POST');
 
             if (!response.ok) {
                 throw new Error('Failed to fetch metrics from server.');
             }
+            return true;
         } catch (error) {
             console.error('Error shutting down server:', error);
+            notificationsManager.value?.addNotification('Shutdown not confirmed', 'Check the connection and administrator password before retrying.', 'error');
+            return false;
         }
     }
 
     public async reboot() {
-        savedIp.value = this._address;
-        savedPassword.value = this._password;
-        savedDemoMode.value = this._demoMode;
-        if (this._demoMode) { return; }    
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // Prevents hanging
-
-            const response = await fetch(`https://${this._address}/reboot?password=${this._password}`, {
-                method: 'GET',
-                signal: controller.signal,
-                headers: {
-                    "ngrok-skip-browser-warning": "true" // Bypass ngrok’s free tier warning
-                }
-            });
-
-            clearTimeout(timeoutId);
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch metrics from server.');
+            if (!this._demoMode) {
+                const response = await requestServer(this._address, this._password, '/reboot', 'POST');
+                if (!response.ok) { throw new Error('Failed to reboot server.'); }
             }
+            savedIp.value = this._address;
+            savedPassword.value = this._password;
+            savedDemoMode.value = this._demoMode;
+            return true;
         } catch (error) {
             console.error('Error rebooting server:', error);
+            notificationsManager.value?.addNotification('Reboot not confirmed', 'Check the connection and administrator password before retrying.', 'error');
+            return false;
         }
     }
 
